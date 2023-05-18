@@ -224,7 +224,3 @@ resize product rawimg字节大小
 ```
 ## avb验证文件，直接替换成关闭avb的文件  
 vbmeta.img
-
-## 最后得到测试用卡刷包，twrp刷入
-https://www.123pan.com/s/fRptVv-aFK4.html  
-提取码:XPet
