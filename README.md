@@ -80,6 +80,11 @@ system\system\framework\vendor.xiaomi.hardware.misys-V4.0-java.jar
 system\system\lib\vendor.xiaomi.hardware.misys@4.0.so  
 system\system\lib64\vendor.xiaomi.hardware.misys@4.0.so
 
+保留10x人脸识别相关lib，MiuiBiometric有通过链接使用到这三个lib  
+system\system\lib64\libjni_faceunlock.so  
+system\system\lib64\libjni_stfaceunlock_api.so  
+system\system\lib64\libstfaceunlockocl.so
+
 MIUI14默认主题、开机动画、壁纸、图标、资源文件，照搬note12pro  
 system\system\media
 
