@@ -1,6 +1,6 @@
 # 红米 10X PRO 移植MIUI 14记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于miui_BOMB_V13.0.5.0，移植文件来源于miui_CEZANNE_V14.0.5.0，卡刷包解包就行了，  
+基于miui_BOMB_V13.0.7.0，移植文件来源于miui_CEZANNE_V14.0.5.0，卡刷包解包就行了，  
 思路就是对比miui_CEZANNE_V13.0.5.0与miui_CEZANNE_V14.0.5.0，取出变更了的部分，未变化的文件仍然保留10x原本的文件,  
 由于project treble这个东西，厂商把大部分机器直接硬件相关的文件放进了单独的vendor分区，使得product和system分区在不同机器上有了很大程度的通用性，  
 再加上MIUI现在很多资源都是集成在一个文件里，通过检测机型代码来切换功能，移植就很方便了  
@@ -176,16 +176,10 @@ vendor\etc\selinux\vendor_file_contexts
 /dev/block/by-name/minidump                          u:object_r:minidump_partition:s0
 ```
 修改se策略文件，  
-14.0.5.0新内容，删除/bootdevice行  
 添加内容第一段大部分为miui13本身就有的，在最后两行中间追加了内容，   
-第二段和第四段是14.0.1.0新增内容，第三段是14.0.5.0新增内容，k30u的mnld、meta_tst和factory这几个二进制文件有更新，貌似跟gps功能有关，但是10x没更新，原则上不动vendor里的二进制，所以可能无效  
+第二段和第三段是新增内容，  
 主要是增加之前有提到过的miui14新增的记录分区相关，由于内核没有实际升级，所以这段感觉上无效  
 vendor\etc\selinux\vendor_sepolicy.cil  
-删除  
-```
-(genfscon debugfs /bootdevice (u object_r sysfs_memory ((s0) (s0))))
-```
-添加  
 ```
 cam_cal_device ebr_device expdb_device fat_device logo_device loop-control_device mbr_device met_device misc_device misc2_device mtfreqhopping_device mtgpio_device mtk_kpd_device network_device nvram_device pmt_device preloader_device pro_info_device protect_f_device protect_s_device psaux_device ptyp_device recovery_device sec_ro_device seccfg_device tee_part_device snapshot_device tgt_device touch_device tpd_em_log_device ttyp_device uboot_device uibc_device usrdata_device zram0_device hwzram0_device RT_Monitor_device kick_powerkey_device agps_device mnld_device geo_device mdlog_device md32_device scp_device adsp_device audio_scp_device sspm_device etb_device MT_pmic_adc_cali_device mtk-adc-cali_device MT_pmic_cali_device otp_device otp_part_block_device qemu_pipe_device icusb_device nlop_device irtx_device pmic_ftm_device charger_ftm_device shf_device keyblock_device offloadservice_device ttyACM_device hrm_device lens_device nvdata_device mcf_ota_block_device nvcfg_device expdb_block_device misc2_block_device logo_block_device para_block_device tee_block_device seccfg_block_device secro_block_device preloader_block_device lk_block_device protect1_block_device protect2_block_device keystore_block_device oemkeystore_block_device sec1_block_device md1img_block_device md1dsp_block_device md1arm7_block_device md3img_block_device mmcblk1_block_device mmcblk1p1_block_device bootdevice_block_device odm_block_device oem_block_device vendor_block_device dtbo_block_device loader_ext_block_device spm_device persist_block_device md_block_device spmfw_block_device mcupmfw_block_device scp_block_device sspm_block_device dsp_block_device ppl_block_device nvcfg_block_device ancservice_device mbim_device audio_ipi_device cam_vpu_block_device boot_para_block_device mtk_dfrc_device vbmeta_block_device alarm_device mdp_device mrdump_device kb_block_device dkb_block_device sar_device mtk_radio_device dpm_block_device audio_dsp_block_device gz_block_device pi_img_device vpud_device vcu_device mml_pq_device hwmsensor_device msensor_device gsensor_device als_ps_device gyroscope_device barometer_device humidity_device biometric_device sensorlist_device hf_manager_device m_batch_misc_device m_als_misc_device m_ps_misc_device m_baro_misc_device m_hmdy_misc_device m_acc_misc_device m_mag_misc_device m_gyro_misc_device m_act_misc_device m_pedo_misc_device m_situ_misc_device m_step_c_misc_device m_fusion_misc_device m_bio_misc_device dri_device postinstall_block_device ccci_wifi_proxy_device teei_fp_device teei_client_device teei_config_device utr_tui_device teei_vfs_device teei_rpmb_device ut_keymaster_device nwkopt_device tx_device gdix_mt_wrapper_device gdix_thp_device mddp_device tkcore_admin_device tkcore_block_device mobicore_admin_device mobicore_user_device mobicore_tui_device rpmb_block_device rpmb_device fingerprint_device widevine_drv_device ccci_aud_device ccci_ccb_device ccci_mdmonitor_device hall_device motor_device ccci_vts_device sound_device oops_block_device rescue_block_device cust_block_device minidump_partition vendor_logdump_partition touchfeature_device aed_device ccci_mdl_device vendor_fingerprint_device gsort_block_device ffu_partition))
 
@@ -199,9 +193,6 @@ cam_cal_device ebr_device expdb_device fat_device logo_device loop-control_devic
 (roletype object_r minidump_partition)
 (type vendor_logdump_partition)
 (roletype object_r vendor_logdump_partition)
-
-(allow mnld meta_tst (unix_dgram_socket (sendto)))
-(allow mnld factory (unix_dgram_socket (sendto)))
 
 (allow hal_misys_default block_device_31_0 (dir (ioctl read getattr lock open watch watch_reads search)))
 (allow hal_misys_default super_block_device_31_0 (blk_file (ioctl read getattr lock map open watch watch_reads)))
