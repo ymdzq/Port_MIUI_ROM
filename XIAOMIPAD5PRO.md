@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6 MAX MIUI 14记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于miui_ELISH_V14.0.4.0，移植文件来源于miui_YUDI_V14.0.3.0  
+基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.3.0  
 由于是同一个安卓版本同一个MIUI大版本移植，所以需要修改的内容不多  
 本文准备仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准，先打一个草稿，慢慢更新  
 
@@ -13,7 +13,7 @@
 因为有一个vendor服务启动项的mslgservice.rc文件，每次开机挂载镜像，解压rootfs，把linux容器放到/data/vendor/mslg/rootfs  
 服务启动优先级更高，所以不能普通的用面具模块代替，除非你重写一个shell脚本开机执行代替mslgservice.rc服务，而且据说不能直接用面具的losetup得用系统的，面具的权限太高了运行不了，就很麻烦。  
 如果就这样直接集成，就需要扩容机器的super分区才能刷得进去，或者你就干脆做成dsu系统包，直接dsu侧载就不管包多大也不需要扩容。  
-如果不集成，随便精简一点东西，就可以确保刷进机器那8.5G的super分区。  
+如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
 
 ## mi_ext分区修改，整体上照搬6max，但要注意以下部分
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
@@ -42,7 +42,7 @@ product\app\MSA
 
 data-app可卸载的预装app，其中不少app都是可以在应用商店里重新安装的，  
 product\data-app\  
-因为平板5pro默认的super分区只有8.5G，而且重新打包必须预留更多空间，所以可以精简这里，把super精简到7G左右，越小越好  
+因为平板5pro默认的super分区只有8.5G，而且重新打包必须预留更多空间，所以可以精简这里，把super精简到7.4G以下，越小越好  
 不过如果你要塞pc版wps，就一定是扩容了机器的super分区，搞不好空间还有多就没必要精简了  
 小米创作  
 product\data-app\Creation  
@@ -105,8 +105,8 @@ ro.product.mod_device=elish
 
 ## system_ext分区无需修改，直接照搬6max
 
-## vendor分区修改，整体上保留5pro，但要注意以下部分
-
+## vendor分区修改，如果选择不集成pc版wps无需修改，直接用5pro的
+如果要集成pc版wps则注意以下部分  
 6max新增pc版wps相关文件，只要对比6pro（liuqin）的整个vendor分区，看孤立文件，一眼就能看出这些文件跟pc版wps有关，  
 其中mslgoptimg、mslgusrimg两个1G以上大文件，是导致super分区需要扩容的原因，  
 所以如果能以某种方法比如这里留一个到userdata的链接，然后把实际文件丢进userdata，  
@@ -135,7 +135,7 @@ vendor/build.prop加入代码
 ro.vendor.mslg.rootfs.version=rootfs-23.07.28.tgz
 sys.mslg.available=1
 ```
-接下来是补充selinux的上下文权限，别人的移植包也没补，我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
+接下来是补充selinux的上下文权限，我看别人的移植包根本就没改，我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
 
 修改vendor文件上下文文件  
 vendor\etc\selinux\vendor_file_contexts  
