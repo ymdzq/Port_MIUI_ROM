@@ -2,7 +2,7 @@
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
 基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.3.0  
 由于是同一个安卓版本同一个MIUI大版本移植，所以需要修改的内容不多  
-本文准备仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准，先打一个草稿，慢慢更新  
+本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准，先打一个草稿，慢慢更新  
 
 这里有两个选择，  
 第一个选择是很多有的没的（像是控制中心工作台开关、设置里的平板专区、平行世界拖拽点、会议工具箱等等）是6max专属新功能，有机型验证，  
@@ -135,7 +135,9 @@ vendor/build.prop加入代码
 ro.vendor.mslg.rootfs.version=rootfs-23.07.28.tgz
 sys.mslg.available=1
 ```
-接下来是补充selinux的上下文权限，我看别人的移植包根本就没改，我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
+接下来是补充selinux的上下文权限，  
+我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
+我看别人的移植包倒是根本就没改，直接改的mslgservice.rc把所有seclabel的mslgd改成shell，这样mslg是直接用shell的权限，就不用补mslgd的sepolicy权限了  
 
 修改vendor文件上下文文件  
 vendor\etc\selinux\vendor_file_contexts  
@@ -522,5 +524,6 @@ hal_mslgkeeper_default
 这里的目标是打包成super.img，vab机器一般是线刷用fastboot刷进super分区，卡刷用zstd压缩后在recovery里解压到super分区
 解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包
 
-## avb验证文件，直接替换成关闭avb的文件  
-vbmeta.img
+## 关闭avb验证，未完成  
+boot.img  
+vendor_boot.img
