@@ -137,7 +137,7 @@ sys.mslg.available=1
 ```
 接下来是补充selinux的上下文权限，  
 我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
-我看别人的移植包倒是根本就没改，直接改的mslgservice.rc把所有seclabel的mslgd改成shell，这样mslg是直接用shell的权限，就不用补mslgd的sepolicy权限了  
+我看别人的移植包倒是根本就没改，直接改selinux宽容，然后mslgservice.rc把所有seclabel的mslgd改成shell，这样mslg是直接用shell的权限，就不用补mslgd的sepolicy权限了  
 
 修改vendor文件上下文文件  
 vendor\etc\selinux\vendor_file_contexts  
@@ -525,5 +525,6 @@ hal_mslgkeeper_default
 解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包
 
 ## 关闭avb验证，未完成  
-boot.img  
-vendor_boot.img
+改vendor里的fstab去除avb代码  
+vendor_boot修改head增加宽容代码
+刷入vbmeta、vbmeta_system时使用命令关闭验证或者在twrp中用选项关闭
