@@ -14,19 +14,15 @@
 服务启动优先级更高，所以不能普通的用面具模块代替，除非你重写一个shell脚本开机执行代替mslgservice.rc服务，而且据说不能直接用面具的losetup得用系统的，面具的权限太高了运行不了，就很麻烦。  
 如果就这样直接集成，就需要扩容机器的super分区才能刷得进去，或者你就干脆做成dsu系统包，直接dsu侧载就不管包多大也不需要扩容。  
 如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
-
 ## mi_ext分区修改，整体上照搬6max，但要注意以下部分
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
 ```
-
 ## odm分区无修改
 这个分区是跟vendor分区配套的，目前无需修改  
-
 ## product分区修改，整体上照搬6max，但要注意以下部分
-
 pc版wps相关文件  
 访问linux容器的rdp后端MSLgRdp和交互操作的前端WpsLauncher  
 如果不集成pc版wps就可以删除  
@@ -62,6 +58,8 @@ product\data-app\MIUIEmail
 product\data-app\MIUIGameCenterPad  
 小米云盘  
 product\data-app\MIUIMiDrive  
+小米社区  
+product\data-app\MIUIVipAccountPad  
 米家  
 product\data-app\SmartHome  
 
@@ -101,8 +99,10 @@ product\overlay\DevicesOverlay.apk
 product\overlay\MiuiBiometricResOverlay.apk  
 product\overlay\MiuiFrameworkResOverlay.apk  
 
+保留5pro相机，删除6max相机，否则会提示机型不匹配无法使用然后退出，  
+我个人是建议使用sevtinge修改相机4.7.230127.0版本，没有机型限制而且解锁更多功能  
+product\priv-app\MiuiCamera
 ## system分区修改，整体上照搬6max，但要注意以下部分
-
 build.prop修改机型代号  
 system\system\build.prop  
 ```
