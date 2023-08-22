@@ -33,8 +33,11 @@ pc版wps相关文件
 product\app\MSLgRdp   
 product\data-app\WpsLauncher  
 
-按需精简  
 product\app  
+删除无法使用的6max人脸识别解锁 MiuiBiometric  
+保留5pro人脸识别解锁 MiuiBiometric3373  
+
+按需精简  
 快应用服务引擎  
 product\app\HybridPlatform  
 智能服务  
@@ -44,6 +47,7 @@ data-app可卸载的预装app，其中不少app都是可以在应用商店里重
 product\data-app\  
 因为平板5pro默认的super分区只有8.5G，而且重新打包必须预留更多空间，所以可以精简这里，把super精简到7.4G以下，越小越好  
 不过如果你要塞pc版wps，就一定是扩容了机器的super分区，搞不好空间还有多就没必要精简了  
+我个人是觉得没必要只为了一个难用的特别版wps，就去搞极限精简，很多常用自带功能用户到时候又要想办法装回来，挺烦人的  
 小米创作  
 product\data-app\Creation  
 小米商城  
@@ -67,14 +71,16 @@ product\data-app\SmartHome
 product\etc\device_features\elish.xml  
 product\etc\device_features\yudi.xml  
 
-屏幕亮度配置文件  
-product\etc\displayconfig  
-保留5pro本身屏幕的xml文件  
+修改屏幕亮度配置文件  
+product\etc\displayconfig\display_id_4630946932993367170.xml  
+目前6max只有一家屏幕供应商，后续更新可能会随着增加屏幕类型，而多出其他id的文件，  
+而这个东西的文件名是在其他地方写死的，只能用display_id_4630946932993367170.xml，否则会出现`*** FATAL EXCEPTION IN SYSTEM PROCESS: android.display`报错无法开机  
+
+5pro屏幕的xml文件为：  
 product\etc\displayconfig\display_id_19260527152667265.xml  
 product\etc\displayconfig\display_id_4630946481717202305.xml  
 product\etc\displayconfig\display_id_4630946545580055169.xml  
-删除6max屏幕的xml文件  
-product\etc\displayconfig\display_id_4630946932993367170.xml  
+这三个文件的内容是完全一样的，所以只要用任意一个里面的内容替换掉display_id_4630946932993367170.xml屏幕亮度调节就正常了
 
 build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭内存扩展  
 product\etc\build.prop
@@ -89,7 +95,7 @@ persist.miui.density_v2=360
 persist.miui.extm.enable=0
 
 ```
-overlay保留5pro本身设备的apk，未完成  
+overlay保留5pro本身设备的apk  
 product\overlay\DevicesAndroidOverlay.apk  
 product\overlay\DevicesOverlay.apk  
 product\overlay\MiuiBiometricResOverlay.apk  
@@ -111,7 +117,7 @@ ro.product.mod_device=elish
 其中mslgoptimg、mslgusrimg两个1G以上大文件，是导致super分区需要扩容的原因，  
 所以如果能以某种方法比如这里留一个到userdata的链接，然后把实际文件丢进userdata，  
 或者直接改sh脚本把位置就写到其他地方，就不需要占用vendor、super分区了  
-另外说一句，由于有人测试了，这东西类原生也可以用，所以如果你能把这些相关文件还有上面product分区里面的两个app放进其他安卓系统的对应位置，其他安卓系统搞不好也能运行  
+另外说一句，由于有人测试了，这东西类原生也可以用，所以理论上用这个东西不一定非要移植6max的rom，如果你能把这些相关文件还有上面product分区里面的两个app放进其他安卓系统的对应位置，其他安卓系统搞不好也能运行  
 ```
 /vendor/bin/hw/mslgservice
 /vendor/bin/losetup.sh
@@ -519,12 +525,24 @@ hal_mslgkeeper_default
 (typeattributeset base_typeattr_724_30_0 ((and (domain) ((not (hal_mslgkeeper_server))))))
 ```
 
-## 重新打包mi_ext、odm、system、system_ext、vendor、product分区，未完成
+## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
-这里的目标是打包成super.img，vab机器一般是线刷用fastboot刷进super分区，卡刷用zstd压缩后在recovery里解压到super分区
+这里的目标是打包成sparse格式的super.img，vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
+常见的情况也有使用zstd工具把super压缩成zst格式，在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
+这种的情况就需要专门的脚本和工具了  
+由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
+dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可
 解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包
 
-## 关闭avb验证，未完成  
-改vendor里的fstab去除avb代码  
-vendor_boot修改head增加宽容代码
-刷入vbmeta、vbmeta_system时使用命令关闭验证或者在twrp中用选项关闭
+## 关闭avb验证  
+可选，修改fstab.qcom去除avb代码  
+vendor\etc\fstab.qcom  
+把system那一行的flags从`,avb_keys=`开始把后面的全删除  
+
+可选，vendor_boot修改header在最后增加设置宽容的代码
+
+刷入vbmeta、vbmeta_system时使用命令关闭avb验证或者在twrp中直接用选项关闭
+```bash
+fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
+fastboot --disable-verity --disable-verification flash vbmeta_system vbmeta_system.img
+```
