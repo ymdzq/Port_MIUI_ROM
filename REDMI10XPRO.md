@@ -117,8 +117,10 @@ system\system\lib64\libstfaceunlockocl.so
 MIUI14默认主题、开机动画、壁纸、图标、资源文件，照搬k30u  
 system\system\media
 
-特殊内置主题，照搬note12pro、civi3  
-system\system\etc\precust_theme
+修复默认主题小米视频无分层图标功能，包名com.miui.videoplayer，这里文件夹名莫名少了一个r  
+system\system\media\theme\miui_mod_icons\dynamic\com.miui.videoplaye  
+改成  
+system\system\media\theme\miui_mod_icons\dynamic\com.miui.videoplayer  
 
 保留10x本身的收音机apk  
 system\system\system_ext\app\FM  
