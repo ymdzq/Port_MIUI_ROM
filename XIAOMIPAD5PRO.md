@@ -93,6 +93,12 @@ persist.miui.density_v2=360
 persist.miui.extm.enable=0
 
 ```
+
+修复默认主题小米视频无分层图标功能，包名com.miui.videoplayer，这里文件夹名莫名少了一个r  
+product\media\theme\miui_mod_icons\dynamic\com.miui.videoplaye  
+改成  
+product\media\theme\miui_mod_icons\dynamic\com.miui.videoplayer  
+
 overlay保留5pro本身设备的apk  
 product\overlay\DevicesAndroidOverlay.apk  
 product\overlay\DevicesOverlay.apk  
