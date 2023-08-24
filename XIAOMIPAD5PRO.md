@@ -114,9 +114,7 @@ system\system\build.prop
 ```
 ro.product.mod_device=elish
 ```
-
 ## system_ext分区无需修改，直接照搬6max
-
 ## vendor分区修改，如果选择不集成pc版wps无需修改，直接用5pro的
 如果要集成pc版wps则注意以下部分  
 6max新增pc版wps相关文件，只要对比6pro（liuqin）的整个vendor分区，看孤立文件，一眼就能看出这些文件跟pc版wps有关，  
@@ -530,22 +528,21 @@ hal_mslgkeeper_default
 (typeattribute base_typeattr_724_30_0)
 (typeattributeset base_typeattr_724_30_0 ((and (domain) ((not (hal_mslgkeeper_server))))))
 ```
-
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
 这里的目标是打包成sparse格式的super.img，vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
 常见的情况也有使用zstd工具把super压缩成zst格式，在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
 这种的情况就需要专门的脚本和工具了  
 由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
-dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可
-解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包
-
+dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可  
+解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包  
 ## 关闭avb验证  
 可选，修改fstab.qcom去除avb代码  
 vendor\etc\fstab.qcom  
-把system那一行的flags从`,avb_keys=`开始把后面的全删除  
+把system那一行的flags从`,avb_keys=`开始把后面的内容全删除  
 
-可选，vendor_boot修改header在最后增加设置宽容的代码
+可选，vendor_boot修改header在最后增加设置宽容的代码，如果要打包pc版wps就设置一下宽容，如果不需要改vendor就算了  
+`androidboot.selinux=permissive`
 
 刷入vbmeta、vbmeta_system时使用命令关闭avb验证或者在twrp中直接用选项关闭
 ```bash
