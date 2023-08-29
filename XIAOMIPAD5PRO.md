@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6 MAX MIUI 14记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.3.0  
+基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.4.0  
 由于是同一个安卓版本同一个MIUI大版本移植，所以需要修改的内容不多  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准，先打一个草稿，慢慢更新  
 
@@ -84,7 +84,7 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/missi:13/TKQ1.221114.001/V14.0.3.0.TMHCNXM:user/release-keys
+ro.product.build.fingerprint=Xiaomi/elish/missi:13/TKQ1.221114.001/V14.0.4.0.TMHCNXM:user/release-keys
 ro.product.mod_device=elish
 
 ro.sf.lcd_density=360
@@ -93,11 +93,6 @@ persist.miui.density_v2=360
 persist.miui.extm.enable=0
 
 ```
-
-修复默认主题小米视频无分层图标功能，包名com.miui.videoplayer，这里文件夹名莫名少了一个r  
-product\media\theme\miui_mod_icons\dynamic\com.miui.videoplaye  
-改成  
-product\media\theme\miui_mod_icons\dynamic\com.miui.videoplayer  
 
 overlay保留5pro本身设备的apk  
 product\overlay\DevicesAndroidOverlay.apk  
@@ -131,7 +126,7 @@ ro.product.mod_device=elish
 /vendor/etc/assets/md5.txt
 /vendor/etc/assets/mslgoptimg
 /vendor/etc/assets/mslgusrimg
-/vendor/etc/assets/rootfs-23.07.28.tgz
+/vendor/etc/assets/rootfs-23.08.22.tgz
 
 /vendor/etc/init/mslgservice.rc
 
@@ -142,7 +137,7 @@ ro.product.mod_device=elish
 ```
 vendor/build.prop加入代码  
 ```
-ro.vendor.mslg.rootfs.version=rootfs-23.07.28.tgz
+ro.vendor.mslg.rootfs.version=rootfs-23.08.22.tgz
 sys.mslg.available=1
 ```
 接下来是补充selinux的上下文权限，  
