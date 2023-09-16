@@ -2,7 +2,7 @@
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
 基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.4.0  
 由于是同一个安卓版本同一个MIUI大版本移植，所以需要修改的内容不多  
-本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准，先打一个草稿，慢慢更新  
+本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
 这里有两个选择，  
 第一个选择是很多有的没的（像是控制中心工作台开关、设置里的平板专区、平行世界拖拽点、会议工具箱等等）是6max专属新功能，有机型验证，  
@@ -142,8 +142,38 @@ sys.mslg.available=1
 ```
 接下来是补充selinux的上下文权限，  
 我也不知道补了有什么用，也不知道写的对不对，反正就是照yudi的文件抄，补了  
-我看别人的移植包倒是根本就没改，直接改selinux宽容，然后mslgservice.rc把所有seclabel的mslgd改成shell，这样mslg是直接用shell的权限，就不用补mslgd的sepolicy权限了  
+我看鲁迅的霸权、曾小理的移植包倒是根本就没改，直接改selinux宽容，然后mslgservice.rc把所有seclabel的mslgd改成shell，这样mslg是直接用shell的权限，就不用补mslgd的sepolicy权限了（修改方法感谢水龙指导）  
 
+修改mslgservice.rc文件  
+vendor\etc\init\mslgservice.rc  
+```
+service mslgservice /vendor/bin/hw/mslgservice
+    class core
+    user root
+    disabled
+    oneshot
+
+service tar_rootfs /vendor/bin/tar-rootfs.sh ${vendor.mslgrootfs.version}
+    class core
+    user root
+    seclabel u:r:shell:s0
+    disabled
+    oneshot
+
+service losetup_rootfs /vendor/bin/losetup.sh
+    class core
+    user root
+    seclabel u:r:shell:s0
+    disabled
+    oneshot
+
+service mslgrootfs /vendor/bin/start-rootfs.sh
+    class core
+    user root
+    seclabel u:r:shell:s0
+    disabled
+    oneshot
+```
 修改vendor文件上下文文件  
 vendor\etc\selinux\vendor_file_contexts  
 ```
@@ -525,8 +555,9 @@ hal_mslgkeeper_default
 ```
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
-这里的目标是打包成sparse格式的super.img，vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
-常见的情况也有使用zstd工具把super压缩成zst格式，在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
+然后用lpmake打包成super img  
+这里的目标是打包成sparse格式的super.img（线刷必须要sparse格式，卡刷不一定取决于刷机脚本怎么写），vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
+常见的情况也有使用zstd工具把super压缩成zst格式（打包zst需要raw格式的super.img），在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
 这种的情况就需要专门的脚本和工具了  
 由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
 dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可  
@@ -539,7 +570,9 @@ vendor\etc\fstab.qcom
 可选，vendor_boot修改header在最后增加设置宽容的代码，如果要打包pc版wps就设置一下宽容，如果不需要改vendor就算了  
 `androidboot.selinux=permissive`
 
-刷入vbmeta、vbmeta_system时使用命令关闭avb验证或者在twrp中直接用选项关闭
+修改vbmeta.img、vbmeta_system.img，关闭avb验证，这玩意得用十六进制编辑器或者打包工具修改，  
+我看米欧是修改的十六进制0000007B这个地址00改成02  
+另一个办法，用户刷入vbmeta、vbmeta_system时使用命令关闭avb验证或者在twrp中直接用选项关闭
 ```bash
 fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
 fastboot --disable-verity --disable-verification flash vbmeta_system vbmeta_system.img
