@@ -30,6 +30,8 @@ product\app\MSLgRdp
 product\data-app\WpsLauncher  
 
 product\app  
+删除骁龙870算力不够导致离线字幕识别功能闪退，无法使用的6max小爱翻译 AiAsstVision  
+保留5pro小爱翻译 AiAsstVision（开发板内置的版本号是3.2.7，目前可以用在线字幕识别的8月最新版是3.3.3）  
 删除无法使用的6max人脸识别解锁 MiuiBiometric  
 保留5pro人脸识别解锁 MiuiBiometric3373  
 
