@@ -93,8 +93,9 @@ ro.sf.lcd_density=360
 persist.miui.density_v2=360
 
 persist.miui.extm.enable=0
-
 ```
+默认主题谷歌支付无分层图标功能，平板6max好像直接就没这个文件夹，从6pro的包里提取一个，改好包名复制过来
+product\media\theme\miui_mod_icons\dynamic\com.google.android.apps.nbu  
 
 overlay保留5pro本身设备的apk  
 product\overlay\DevicesAndroidOverlay.apk  
