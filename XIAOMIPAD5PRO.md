@@ -34,6 +34,8 @@ product\app
 保留5pro小爱翻译 AiAsstVision（开发板内置的版本号是3.2.7，目前可以用在线字幕识别的8月最新版是3.3.3）  
 删除无法使用的6max人脸识别解锁 MiuiBiometric  
 保留5pro人脸识别解锁 MiuiBiometric3373  
+删除6max的手写笔和键盘设置 MiuiInputSettings_M80 据说会导致有线鼠标操作失灵  
+保留5pro的手写笔和键盘设置 MiuiInputSettings  
 
 按需精简  
 快应用服务引擎  
