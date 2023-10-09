@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6 MAX MIUI 14记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于miui_ELISH_V14.0.23.7.31，移植文件来源于miui_YUDI_V14.0.6.0  
+基于miui_ELISH_V14.0.5.0，移植文件来源于miui_YUDI_V14.0.6.0  
 由于是同一个安卓版本同一个MIUI大版本移植，所以需要修改的内容不多  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
@@ -36,6 +36,7 @@ product\app
 保留5pro人脸识别解锁 MiuiBiometric3373  
 删除6max的手写笔和键盘设置 MiuiInputSettings_M80 据说会导致有线鼠标操作失灵  
 保留5pro的手写笔和键盘设置 MiuiInputSettings  
+overlay同上需要替换 product\overlay\MiuiInputSettingsOverlay.apk
 
 按需精简  
 快应用服务引擎  
@@ -128,7 +129,12 @@ system\system\build.prop
 ```
 ro.product.mod_device=elish
 ```
-## system_ext分区无需修改，直接照搬6max
+## system_ext分区修改，整体上照搬6max，但要注意以下部分
+build.prop修改，作用未知  
+system_ext\etc\build.prop  
+```
+persist.vendor.dpm.feature=11
+```
 ## vendor分区修改，如果选择不集成pc版wps无需修改，直接用5pro的
 如果要集成pc版wps则注意以下部分  
 6max新增pc版wps相关文件，只要对比6pro（liuqin）的整个vendor分区，看孤立文件，一眼就能看出这些文件跟pc版wps有关，  
@@ -161,6 +167,7 @@ sys.mslg.available=1
 ```
 接下来是补充selinux的上下文权限，  
 补个锤子  
+selinux这玩意如果有问题就会导致开机重启、直接进入recovery或者fastboot界面，所以我是真的不推荐动vendor搞wps  
 我看鲁迅的霸权、曾小理的移植包倒是根本就没改，直接改selinux宽容，然后mslgservice.rc把所有seclabel的mslgd改成shell，mslgservice直接不要了那行（修改方法感谢水龙指导）  
 
 修改mslgservice.rc文件  
@@ -196,7 +203,7 @@ service mslgrootfs /vendor/bin/start-rootfs.sh
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
 然后用lpmake打包成super img  
-这里的目标是打包成sparse格式的super.img（线刷必须要sparse格式，卡刷不一定取决于刷机脚本怎么写），vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
+vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里用卡刷脚本写入到super分区，  
 常见的情况也有使用zstd工具把super压缩成zst格式（打包zst需要raw格式的super.img），在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
 这种的情况就需要专门的脚本和工具了  
 由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
