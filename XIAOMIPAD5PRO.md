@@ -6,7 +6,7 @@
 这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
-由于修改了系统文件，所以avb验证肯定是要关的，而想保证各种app兼容性，所以我选择保持selinux enforce，既不集成pc版wps  
+由于修改了系统文件，所以avb验证肯定是要关的，而想保证各种app兼容性，所以我选择保持selinux enforce，即不集成pc版wps  
 如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
 ## mi_ext分区修改，整体上照搬6max，但要注意以下部分
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
@@ -33,6 +33,8 @@ product\app
 product\app\Biometric\oat\arm64\Biometric.odex  
 product\app\Biometric\oat\arm64\Biometric.vdex  
 然后直接把MiuiBiometric3373.apk改名成Biometric.apk替换  
+以及保留配套的5pro的overlay资源文件  
+product\overlay\MiuiBiometricResOverlay.apk  
 
 按需精简  
 快应用服务引擎  
@@ -97,8 +99,9 @@ persist.miui.extm.enable=0
 注释掉这行，因为cust分区格式不是erofs
 #ro.miui.cust_erofs=1
 ```
-overlay保留5pro本身设备的apk  
-product\overlay\MiuiBiometricResOverlay.apk  
+overlay保留5pro本身设备的apk，但是目前测试下来没有什么太大的影响，可以保留也可以不保留  
+product\overlay\DevicesAndroidOverlay.apk  
+product\overlay\DevicesOverlay.apk  
 product\overlay\MiuiFrameworkResOverlay.apk  
 
 删除6max相机，否则会提示机型不匹配无法使用然后退出，  
@@ -124,6 +127,25 @@ ro.millet.netlink=29
 ```
 咦，这段代码我是不是可以加到其他分区的build.prop里，vendor分区就彻底不用改了  
 可选修改fstab.qcom：是否更新mi_ext分区相关内容，另外不推荐动userdata，一个搞不好就用户数据火葬场
+## 可选product分区修改，补全小米平板缺失的工具app
+我用的k60手机官方澎湃，所以我这里的app是用的手机版补，按理说是要用mix fold3折叠屏的app更好  
+小爱建议  
+product\app\XiaoaiRecommendation  
+小米运动健康  
+product\data-app\Health\Health.apk  
+小米锁屏画报  
+product\data-app\MIGalleryLockscreen-MIUI15\MIGalleryLockscreen-MIUI15.apk  
+指南针  
+product\data-app\MIUICompass\MIUICompass.apk  
+传送门  
+product\priv-app\MIUIContentExtension\MIUIContentExtension.apk  
+添加传送门所需权限  
+product\etc\permissions\privapp-permissions-product.xml  
+```
+   <privapp-permissions package="com.miui.contentextension">
+      <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+   </privapp-permissions>
+```
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
 然后用lpmake打包成super img  
