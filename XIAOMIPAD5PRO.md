@@ -99,9 +99,12 @@ persist.miui.extm.enable=0
 注释掉这行，因为cust分区格式不是erofs
 #ro.miui.cust_erofs=1
 ```
-overlay保留5pro本身设备的apk，但是目前测试下来没有什么太大的影响，可以保留也可以不保留  
+overlay保留5pro本身设备的apk  
+DevicesAndroidOverlay主要影响圆角弧率、状态栏高度，aod服务（lcd没有）  
 product\overlay\DevicesAndroidOverlay.apk  
+DevicesOverlay主要影响导航栏（小白条）布局以及圆角，充电动画  
 product\overlay\DevicesOverlay.apk  
+MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一些网络制式的属性  
 product\overlay\MiuiFrameworkResOverlay.apk  
 
 删除6max相机，否则会提示机型不匹配无法使用然后退出，  
@@ -114,7 +117,7 @@ product\priv-app\MiuiCamera
 system\system\framework\services.jar  
 反编译，大致修改为核心破解，但是具体修改内容详询暮间雾大佬  
 ## system_ext分区不修改，直接照搬暮间雾大佬的raw image，经对比以下部分为修改文件
-system_ext\priv-app\Settings\Settings.apk
+system_ext\priv-app\Settings\Settings.apk  
 反编译，大致修改为找到平板相关新功能的代码，修改平板6系列机型代号为平板5系列机型代号，但是具体修改内容详询暮间雾大佬  
 
 为什么system、system_ext要照搬暮间雾大佬的raw image呢？因为系统设置闪退，用他的这两个镜像就没有问题，而我自己拆原包替换里面两个文件之后仍然卡第二屏开机动画，目测为拆包打包软件不兼容，二次拆包容易损坏文件系统
