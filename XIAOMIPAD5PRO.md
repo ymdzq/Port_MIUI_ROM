@@ -132,6 +132,8 @@ ro.millet.netlink=29
 可选修改fstab.qcom：是否更新mi_ext分区相关内容，另外不推荐动userdata，一个搞不好就用户数据火葬场
 ## 可选product分区修改，补全小米平板缺失的工具app
 我用的k60手机官方澎湃，所以我这里的app是用的手机版补，按理说是要用mix fold3折叠屏的app更好  
+悬浮球  
+product\app\MIUITouchAssistant  
 小爱建议  
 product\app\XiaoaiRecommendation  
 小米运动健康  
