@@ -125,10 +125,13 @@ system_ext\priv-app\Settings\Settings.apk
 vendor/build.prop加入代码  
 修复millet  
 ```
+注释掉旧的millet配置
+#persist.sys.millet.cgroup1=true
+
 #add millet netlink property
 ro.millet.netlink=29
 ```
-咦，这段代码我是不是可以加到其他分区的build.prop里，vendor分区就彻底不用改了  
+`ro.millet.netlink`我看了dagu是加到product分区的build.prop里，但是6max的是在vendor里，所以在这里提一句  
 可选修改fstab.qcom：是否更新mi_ext分区相关内容，另外不推荐动userdata，一个搞不好就用户数据火葬场
 ## 可选product分区修改，补全小米平板缺失的工具app
 我用的k60手机官方澎湃，所以我这里的app是用的手机版补，按理说是要用mix fold3折叠屏的app更好  
