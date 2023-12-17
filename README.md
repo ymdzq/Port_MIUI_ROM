@@ -97,6 +97,14 @@ persist.miui.density_v2=360
 
 persist.miui.extm.enable=0
 ```
+想起来还有三行代码忘了放  
+```
+#开启高级材质选项
+persist.sys.background_blur_supported=true
+#6max多了的两行玄学优化
+persist.sys.support_view_smoothcorner=true
+persist.sys.support_window_smoothcorner=true
+```
 overlay保留5pro本身设备的apk  
 DevicesAndroidOverlay主要影响圆角弧率、状态栏高度，aod服务（lcd没有）  
 product\overlay\DevicesAndroidOverlay.apk  
