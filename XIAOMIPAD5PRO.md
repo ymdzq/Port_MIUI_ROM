@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6S Pro 12.4英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于miui_ELISH_V14.0.5.0，移植文件来源于SHENG_OS1.0.4.0  
+基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.4.0  
 这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
@@ -17,7 +17,15 @@ ro.mi.os.version.incremental=OS1.0.4.0.UKYCNXM
 ```
 按需精简  
 预装画世界Pro，用来绘画的app?    
-mi_ext\product\data-app\HsjPro\HsjPro.apk
+mi_ext\product\data-app\HsjPro\HsjPro.apk  
+
+这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来  
+mi_ext\etc\build.prop里面有一行`ro.miui.support.system.app.uninstall.v2=true`  
+mi_ext\product\etc\permissions\platform-miui-uninstall.xml  
+mi_ext\product\framework\miui-uninstall-empty.jar  
+mi_ext\product\overlay\signed_PLATFORM_cf766d1e91_app_sec_overlay-release-unsigned.apk  
+
+product\data-app\MIUISecurityManager\MIUISecurityManager.apk  
 ## odm分区无修改
 这个分区是跟vendor分区配套的，目前无需修改  
 ## product分区修改，整体上照搬6s Pro，但要注意以下部分
@@ -28,9 +36,8 @@ product\app\MSLgRdp
 product\data-app\WpsLauncher  
 
 product\app  
-删除骁龙870算力不够导致离线字幕识别功能闪退，无法使用的6s Pro小爱翻译 AiAsstVision  
-保留5pro小爱翻译 AiAsstVision（MIUI 14内置的版本号是3.2.7，目前可以用在线字幕识别的8月最新版是3.3.3）  
-（目前12月小米在应用商店全平台推送了4.7.0更新，这个版本据说在开发版上可以启动字幕识别在线模型兼容算力不足老设备，但是我测试的在这个版本澎湃上还是离线模型闪退，所以不更新）  
+保留5pro小爱翻译 AiAsstVision  
+（a13澎湃内置的版本号是4.6.0，应用商店更新后可以正常使用实时字幕）  
 保留5pro人脸识别解锁 MiuiBiometric3373  
 
 按需精简  
@@ -77,7 +84,69 @@ product\data-app\SmartHome
 所以我是建议干脆把elish.xml复制两份一个叫elish.xml一个叫sheng.xml，都放进去，这样用哪个代号也不要紧  
 product\etc\device_features\elish.xml  
 product\etc\device_features\sheng.xml  
+修改预装app列表（剃刀计划）
+```
+    <!--Add for the system data-app which could uninstall by user-->
+    <string-array name="system_data_packagename_list">
+        <item>com.xiaomi.pass</item>
+        <item>com.xiaomi.scanner</item>
+        <item>com.xiaomi.gamecenter</item>
+        <item>com.miui.weather2</item>
+        <item>com.miui.notes</item>
+        <item>com.miui.compass</item>
+        <item>com.miui.calculator</item>
+        <item>com.android.email</item>
+        <item>com.miui.cleanmaster</item>
+        <item>com.mi.misupport</item>
+        <item>com.duokan.reader</item>
+        <item>com.mfashiongallery.emag</item>
+        <item>com.miui.personalassistant</item>
+        <item>com.miui.voip</item>
+        <item>com.miui.yellowpage</item>
+        <item>com.xiaomi.midrop</item>
+        <item>com.android.midrive</item>
+        <item>com.xiaomi.drivemode</item>
+        <item>com.miui.smarttravel</item>
+        <item>com.android.soundrecorder</item>
+        <item>com.miui.screenrecorder</item>
+    </string-array>
+    <!--system data-app path list -->
+    <string-array name="system_data_path_list">
+        <item>/system/data-app/XMPass/XMPass.apk</item>
+        <item>/system/data-app/MIUIScannerGlobal/MIUIScannerGlobal.apk</item>
+        <item>/system/data-app/GameCenter/GameCenter.apk</item>
+        <item>/system/data-app/MIUIWeatherGlobal/MIUIWeatherGlobal.apk</item>
+        <item>/system/data-app/MIUINotes/MIUINotes.apk</item>
+        <item>/system/data-app/MIUICompassGlobal/MIUICompassGlobal.apk</item>
+        <item>/system/data-app/MIUICalculatorGlobal/MIUICalculatorGlobal.apk</item>
+        <item>/system/data-app/Email/Email.apk</item>
+        <item>/system/data-app/CleanMaster/CleanMaster.apk</item>
+        <item>/system/data-app/MiSupport/MiSupport.apk</item>
+        <item>/system/data-app/com.duokan.reader/com.duokan.reader.apk</item>
+        <item>/system/data-app/MiGalleryLockscreen/MiGalleryLockscreen.apk</item>
+        <item>/system/data-app/PersonalAssistant/PersonalAssistant.apk</item>
+        <item>/system/data-app/MiuiVoip/MiuiVoip.apk</item>
+        <item>/system/data-app/YellowPage/YellowPage.apk</item>
+        <item>/system/data-app/MIDrop/MIDrop.apk</item>
+        <item>/system/data-app/MiDrive/MiDrive.apk</item>
+        <item>/system/data-app/MiuiDriveMode/MiuiDriveMode.apk</item>
+        <item>/system/data-app/SmartTravel/SmartTravel.apk</item>
+        <item>/system/data-app/MIUISoundRecorderTargetSdk30Global/MIUISoundRecorderTargetSdk30Global.apk</item>
+        <item>/system/data-app/MIUIScreenRecorderLiteGlobal/MIUIScreenRecorderLiteGlobal.apk</item>
+    </string-array>
+    <!--global uninstallable system app package list-->
+    <string-array name="global_uninstallable_system_packagename_list">
+        <item>com.xiaomi.scanner</item>
+        <item>com.miui.weather2</item>
+        <item>com.miui.notes</item>
+        <item>com.miui.compass</item>
+        <item>com.miui.calculator</item>
+        <item>com.xiaomi.midrop</item>
+        <item>com.android.soundrecorder</item>
+        <item>com.miui.screenrecorder</item>
+    </string-array>
 
+```
 修改屏幕亮度配置文件  
 product\etc\displayconfig\display_id_4630947038039379843.xml  
 目前6s Pro只有一家屏幕供应商，由于没有测试是否还有之前版本出现的`*** FATAL EXCEPTION IN SYSTEM PROCESS: android.display`报错无法开机的问题  
@@ -89,7 +158,7 @@ product\etc\displayconfig\display_id_4630946545580055169.xml
 这三个文件的内容是完全一样的，所以我选择删掉display_id_4630947038039379843.xml，并且保留这三个xml文件，屏幕亮度调节就正常了  
 这里需要注意Overlay里面的AospFrameworkResOverlay.apk要换成5Pro的，否则会遇到自动亮度导致系统软重启的问题  
 product\overlay\AospFrameworkResOverlay.apk  
-本来按理说是要反编译这个apk，对比澎湃os与miui14改动，修改到5Pro的文件上的，能力有限，不想努力了  
+照搬官方澎湃，不用修改，好耶  
 
 build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭内存扩展  
 product\etc\build.prop
@@ -135,6 +204,9 @@ persist.sys.minfree_8g=73728,92160,110592,387072,1105920,1451520
 #作用未知
 ro.control_privapp_permissions=log
 ```
+保留5pro本身开机动画（分辨率匹配屏幕）  
+product\media\bootanimation.zip  
+
 overlay保留5pro本身设备的apk  
 DevicesAndroidOverlay主要影响圆角弧率、状态栏高度，aod服务（lcd没有）  
 product\overlay\DevicesAndroidOverlay.apk  
