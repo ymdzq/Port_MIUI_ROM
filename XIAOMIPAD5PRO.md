@@ -38,8 +38,6 @@ product\data-app\WpsLauncher
 product\app  
 保留5pro小爱翻译 AiAsstVision  
 （a13澎湃内置的版本号是4.6.0，应用商店更新后可以正常使用实时字幕）  
-保留5pro音质音效 MiSound  
-（今天看迷宫饭第10集的时候人声有点怪，怀疑是这个东西的问题）  
 保留5pro人脸识别解锁 MiuiBiometric3373  
 
 按需精简  
@@ -191,6 +189,7 @@ ro.millet.netlink=29
 #开启高级材质选项
 persist.sys.background_blur_supported=true
 persist.sys.background_blur_version=2
+persist.sys.mi_shadow_supported=true
 
 #6max多了的两行玄学优化，平滑圆角
 persist.sys.support_view_smoothcorner=true
@@ -269,13 +268,6 @@ ro.system_ext.build.version.incremental=V816.0.5.0.UKYCNXM
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
 vendor/build.prop加入代码  
 ```
-#注释掉重复定义的机型代号
-#ro.product.mod_device=elish
-#注释掉旧的关闭音频负载代码？
-#vendor.audio.offload.track.enable=false
-#注释掉旧的millet配置
-#persist.sys.millet.cgroup1=true
-
 #玄学优化代码
 # fix the drop frame issus
 ro.surface_flinger.enable_frame_rate_override=false
@@ -284,7 +276,6 @@ ro.vendor.mi_sf.ultimate.perf.support=true
 ro.surface_flinger.use_content_detection_for_refresh_rate=false
 ro.surface_flinger.set_touch_timer_ms=0
 ro.surface_flinger.set_idle_timer_ms=0
-vendor.perf.framepacing.enable=false
 ro.build.recovery.version.release=14
 debug.sf.auto_latch_unsignaled=0
 vendor.display.enable_display_extensions=1
