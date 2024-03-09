@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6S Pro 12.4英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.4.0  
+基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.5.0  
 这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
@@ -13,7 +13,7 @@ build.prop修改机型代号，这里这个代号是miui ota更新服务器用�
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS1.0.4.0.UKYCNXM
+ro.mi.os.version.incremental=OS1.0.5.0.UKYCNXM
 ```
 按需精简  
 预装画世界Pro，用来绘画的app?    
@@ -38,6 +38,8 @@ product\data-app\WpsLauncher
 product\app  
 保留5pro小爱翻译 AiAsstVision  
 （a13澎湃内置的版本号是4.6.0，应用商店更新后可以正常使用实时字幕）  
+保留5pro音质音效 MiSound  
+（今天看迷宫饭第10集的时候人声有点怪，怀疑是这个东西的问题）  
 保留5pro人脸识别解锁 MiuiBiometric3373  
 
 按需精简  
@@ -146,6 +148,10 @@ product\etc\device_features\sheng.xml
         <item>com.miui.screenrecorder</item>
     </string-array>
 
+    <!-- 新版屏幕刷新率设置ui -->
+    <bool name="support_smart_fps">true</bool>
+    <!-- smart fps value-->
+    <integer name="smart_fps_value">120</integer>
 ```
 修改屏幕亮度配置文件  
 product\etc\displayconfig\display_id_4630947038039379843.xml  
@@ -164,8 +170,8 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.231003.002/V816.0.4.0.UKYCNXM:user/release-keys
-ro.product.build.version.incremental=V816.0.4.0.UKYCNXM
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
+ro.product.build.version.incremental=V816.0.5.0.UKYCNXM
 
 persist.miui.density_v2=360
 ro.sf.lcd_density=360
@@ -243,22 +249,22 @@ system\system\framework\services.jar
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
 ```
-ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.4.0.UKYCNXM:user/release-keys
-ro.system_dlkm.build.version.incremental=V816.0.4.0.UKYCNXM
+ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
+ro.system_dlkm.build.version.incremental=V816.0.5.0.UKYCNXM
 ```
 system\system\build.prop
 ```
-ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.4.0.UKYCNXM:user/release-keys
-ro.system.build.version.incremental=V816.0.4.0.UKYCNXM
-ro.build.version.incremental=V816.0.4.0.UKYCNXM
+ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
+ro.system.build.version.incremental=V816.0.5.0.UKYCNXM
+ro.build.version.incremental=V816.0.5.0.UKYCNXM
 ```
 ## system_ext分区不修改，直接照搬6s Pro
 可选修改  
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.4.0.UKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=V816.0.4.0.UKYCNXM
+ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=V816.0.5.0.UKYCNXM
 ```
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
 vendor/build.prop加入代码  
