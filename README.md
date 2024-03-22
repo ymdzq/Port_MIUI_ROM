@@ -239,7 +239,7 @@ product\etc\permissions\privapp-permissions-product.xml
 ## system分区不修改，直接照搬6s Pro
 可选修改  
 核心破解，如果你需要修改某些系统app，就需要自己修改services.jar文件  
-system\system\framework\services.jar
+system\system\framework\services.jar  
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
 ```
