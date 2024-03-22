@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6S Pro 12.4英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.5.0  
+基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.7.0  
 这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
@@ -13,10 +13,10 @@ build.prop修改机型代号，这里这个代号是miui ota更新服务器用�
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS1.0.5.0.UKYCNXM
+ro.mi.os.version.incremental=OS1.0.7.0.UKYCNXM
 ```
 按需精简  
-预装画世界Pro，用来绘画的app?    
+预装画世界Pro，用来绘画的app?  
 mi_ext\product\data-app\HsjPro\HsjPro.apk  
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来  
@@ -37,7 +37,7 @@ product\data-app\WpsLauncher
 
 product\app  
 保留5pro小爱翻译 AiAsstVision  
-（a13澎湃内置的版本号是4.6.0，应用商店更新后可以正常使用实时字幕）  
+（a13澎湃内置的版本号是4.6.0，更新为应用商店4.9.0在线字幕版本，可能需要使用模块解锁实时字幕功能）  
 保留5pro人脸识别解锁 MiuiBiometric3373  
 
 按需精简  
@@ -190,6 +190,7 @@ ro.millet.netlink=29
 persist.sys.background_blur_supported=true
 persist.sys.background_blur_version=2
 persist.sys.mi_shadow_supported=true
+persist.sys.background_blur_mode=0
 
 #6max多了的两行玄学优化，平滑圆角
 persist.sys.support_view_smoothcorner=true
@@ -232,7 +233,7 @@ product\app\MIUITouchAssistant
 product\data-app\MIGalleryLockscreen-MIUI15\MIGalleryLockscreen-MIUI15.apk  
 指南针  
 product\data-app\MIUICompass\MIUICompass.apk  
-传送门  
+传送门（更新为网络来源3.2.5版本，支持横屏触发）  
 product\priv-app\MIUIContentExtension\MIUIContentExtension.apk  
 添加传送门所需权限  
 product\etc\permissions\privapp-permissions-product.xml  
@@ -243,7 +244,7 @@ product\etc\permissions\privapp-permissions-product.xml
 ```
 ## system分区不修改，直接照搬6s Pro
 可选修改  
-核心破解，如果你需要修改某些系统app，就需要自己修改services.jar文件  
+签名破解，要修改系统app，就需要修改services.jar文件，我这里使用的SYT_ROM工具提供的插件自动修改  
 system\system\framework\services.jar  
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
@@ -259,6 +260,13 @@ ro.build.version.incremental=V816.0.5.0.UKYCNXM
 ```
 ## system_ext分区不修改，直接照搬6s Pro
 可选修改  
+状态栏歌词（作者来自酷安 白羊唐黎明）  
+system_ext\priv-app\MiuiSystemUI  
+反编译MiuiSystemUI.apk，修改完成后替换，并删除两个oat文件  
+system_ext\priv-app\Settings  
+反编译Settings.apk，修改完成后替换，并删除两个oat文件  
+我这里使用的方法是先把两个apk复制到新建文件夹，然后使用[APKEditor](https://github.com/REAndroid/APKEditor) 反编译，得到MiuiSystemUI_decompile_xml和Settings_decompile_xml文件夹，按照酷安教程修改，他原教程是使用手机修改的，用电脑修改会稍微有点区别，具体修改内容可以参考我上传的[pad6sp_statusbar_lyric](https://github.com/ymdzq/pad6sp_statusbar_lyric/)仓库，如果你git玩得溜可以git format-patch fa8db76..7b9100b输出我的修改为补丁文件，按照你反编译得到的NotificationMediaManager$1.smali实际文件内容，修改补丁中go/retraceme后面的那一串代码，然后git apply命令一键应用补丁完成修改  
+
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
