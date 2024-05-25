@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6S Pro 12.4英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.1.0，移植文件来源于SHENG_OS1.0.7.0  
+基于ELISH_OS1.0.2.0，移植文件来源于SHENG_OS1.0.7.0  
 这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
@@ -26,7 +26,7 @@ mi_ext\product\framework\miui-uninstall-empty.jar
 mi_ext\product\overlay\signed_PLATFORM_cf766d1e91_app_sec_overlay-release-unsigned.apk  
 
 product\data-app\MIUISecurityManager\MIUISecurityManager.apk  
-## odm分区无修改
+## odm分区，用5pro的，不用改
 这个分区是跟vendor分区配套的，目前无需修改  
 ## product分区修改，整体上照搬6s Pro，但要注意以下部分
 pc版wps相关文件  
@@ -37,8 +37,9 @@ product\data-app\WpsLauncher
 
 product\app  
 保留5pro小爱翻译 AiAsstVision  
-（a13澎湃内置的版本号是4.6.0，更新为应用商店4.9.0在线字幕版本，可能需要使用模块解锁实时字幕功能）  
+（a13澎湃内置的版本号是4.6.0，可能需要使用模块解锁实时字幕功能）  
 保留5pro人脸识别解锁 MiuiBiometric3373  
+替换AnalyticsCore（来自白羊唐黎明）  
 
 按需精简  
 快应用服务引擎  
@@ -147,9 +148,14 @@ product\etc\device_features\sheng.xml
     </string-array>
 
     <!-- 新版屏幕刷新率设置ui -->
+    <!-- whether support fps change -->
     <bool name="support_smart_fps">true</bool>
     <!-- smart fps value-->
     <integer name="smart_fps_value">120</integer>
+    <integer-array name="fpsList">
+        <item>120</item>
+        <item>60</item>
+    </integer-array>
 ```
 修改屏幕亮度配置文件  
 product\etc\displayconfig\display_id_4630947038039379843.xml  
@@ -168,8 +174,8 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
-ro.product.build.version.incremental=V816.0.5.0.UKYCNXM
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.231003.002/V816.0.7.0.UKYCNXM:user/release-keys
+ro.product.build.version.incremental=V816.0.7.0.UKYCNXM
 
 persist.miui.density_v2=360
 ro.sf.lcd_density=360
@@ -190,7 +196,6 @@ ro.millet.netlink=29
 persist.sys.background_blur_supported=true
 persist.sys.background_blur_version=2
 persist.sys.mi_shadow_supported=true
-persist.sys.background_blur_mode=0
 
 #6max多了的两行玄学优化，平滑圆角
 persist.sys.support_view_smoothcorner=true
@@ -208,8 +213,21 @@ persist.sys.minfree_6g=73728,92160,110592,258048,663552,903168
 persist.sys.minfree_8g=73728,92160,110592,387072,1105920,1451520
 
 #作用未知
-ro.control_privapp_permissions=log
+ro.audio.3d_play=true
 ```
+内置完美横屏计划  
+product\etc\autoui_list.xml  
+product\etc\embedded_rules_list.xml  
+product\etc\fixed_orientation_list.xml  
+
+内置完美图标计划  
+product\media\theme\default\dynamicicons  
+product\media\theme\default\icons  
+product\media\theme\default\miui_mod_icons\  
+
+默认开启通信共享  
+product\media\theme\default\framework-miui-res  
+
 保留5pro本身开机动画（分辨率匹配屏幕）  
 product\media\bootanimation.zip  
 
@@ -220,10 +238,12 @@ DevicesOverlay主要影响导航栏（小白条）布局以及圆角，充电动
 product\overlay\DevicesOverlay.apk  
 MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一些网络制式的属性  
 product\overlay\MiuiFrameworkResOverlay.apk  
+MiuiBiometricResOverlay人脸识别资源文件空包  
+product\overlay\MiuiBiometricResOverlay.apk  
 
 删除6s Pro相机，否则会提示机型不匹配无法使用然后退出，  
 目前澎湃只能用5.0以上版本的相机，老apk无法使用，同样会提示机型不匹配无法使用然后退出，  
-直接抄暮间雾大佬修改的相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
+直接抄闪电flasshh的5.1通用相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
 product\priv-app\MiuiCamera  
 并且删除两个oat文件  
 ## 可选product分区修改，补全小米平板缺失的工具app
@@ -249,14 +269,14 @@ system\system\framework\services.jar
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
 ```
-ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
-ro.system_dlkm.build.version.incremental=V816.0.5.0.UKYCNXM
+ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.7.0.UKYCNXM:user/release-keys
+ro.system_dlkm.build.version.incremental=V816.0.7.0.UKYCNXM
 ```
 system\system\build.prop
 ```
-ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
-ro.system.build.version.incremental=V816.0.5.0.UKYCNXM
-ro.build.version.incremental=V816.0.5.0.UKYCNXM
+ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.7.0.UKYCNXM:user/release-keys
+ro.system.build.version.incremental=V816.0.7.0.UKYCNXM
+ro.build.version.incremental=V816.0.7.0.UKYCNXM
 ```
 ## system_ext分区不修改，直接照搬6s Pro
 可选修改  
@@ -265,13 +285,13 @@ system_ext\priv-app\MiuiSystemUI
 反编译MiuiSystemUI.apk，修改完成后替换，并删除两个oat文件  
 system_ext\priv-app\Settings  
 反编译Settings.apk，修改完成后替换，并删除两个oat文件  
-我这里使用的方法是先把两个apk复制到新建文件夹，然后使用[APKEditor](https://github.com/REAndroid/APKEditor) 反编译，得到MiuiSystemUI_decompile_xml和Settings_decompile_xml文件夹，按照酷安教程修改，他原教程是使用手机修改的，用电脑修改会稍微有点区别，具体修改内容可以参考我上传的[pad6sp_statusbar_lyric](https://github.com/ymdzq/pad6sp_statusbar_lyric/)仓库，如果你git玩得溜可以git format-patch fa8db76..7b9100b输出我的修改为补丁文件，按照你反编译得到的NotificationMediaManager$1.smali实际文件内容，修改补丁中go/retraceme后面的那一串代码，然后git apply命令一键应用补丁完成修改  
+我这里使用的方法是先把两个apk复制到新建文件夹，然后使用[APKEditor](https://github.com/REAndroid/APKEditor) 反编译，得到MiuiSystemUI_decompile_xml和Settings_decompile_xml文件夹，按照酷安教程修改，他原教程是使用手机修改的，用电脑修改会稍微有点区别，具体修改内容可以参考我上传的[pad6sp_statusbar_lyric](https://github.com/ymdzq/pad6sp_statusbar_lyric/)仓库，他附件提供的有一个xml是加密xml，电脑上处理不了，所以那个xml我是直接从他的米13官改包里反编译拿的  
 
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.5.0.UKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=V816.0.5.0.UKYCNXM
+ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.231003.002/V816.0.7.0.UKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=V816.0.7.0.UKYCNXM
 ```
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
 vendor/build.prop加入代码  
@@ -286,45 +306,14 @@ ro.surface_flinger.set_touch_timer_ms=0
 ro.surface_flinger.set_idle_timer_ms=0
 ro.build.recovery.version.release=14
 debug.sf.auto_latch_unsignaled=0
-vendor.display.enable_display_extensions=1
 ```
 `ro.millet.netlink`上面已经加到product分区的build.prop里了，所以vendor里不需要重复添加  
-可选修改fstab.qcom：是否更新mi_ext分区相关内容，另外不推荐动userdata，一个搞不好就用户数据火葬场
-```
-/mnt/vendor/mi_ext                                      /mi_ext                none    ro,bind                                              wait,nofail
-#改成
-/mnt/vendor/mi_ext                                      /mi_ext                ext4    ro,bind                                              wait,nofail
 
-#添加更多overlay挂载文件夹
-overlay                                                 /product/usr                overlay ro,lowerdir=/mnt/vendor/mi_ext/product/usr:/product/usr check,nofail
-overlay                                                 /product/etc/precust_theme  overlay ro,lowerdir=/mnt/vendor/mi_ext/product/etc/precust_theme:/product/etc/precust_theme check,nofail
-overlay                                                 /product/etc/preferred-apps overlay ro,lowerdir=/mnt/vendor/mi_ext/product/etc/preferred-apps:/product/etc/preferred-apps check,nofail
-overlay                                                 /product/etc/security       overlay ro,lowerdir=/mnt/vendor/mi_ext/product/etc/security:/product/etc/security check,nofail
-overlay                                                 /system_ext/etc/permissions overlay ro,lowerdir=/mnt/vendor/mi_ext/system_ext/etc/permissions:/system_ext/etc/permissions check,nofail
-```
-vendor\ueventd.rc  
-```
-#删除
-/dev/hw_random            0600   root       root
-```
-## boot分区
-这个地方主要是影响官方recovery，改不改影响不大  
-澎湃OS的mi_ext分区挂载文件系统类型有点改动，原来是none改成ext4，这个地方好像改不改影响不大  
-ramdisk\system\etc\recovery.fstab  
-```
-/mnt/vendor/mi_ext                                      /mi_ext                none    ro,bind                                              wait,nofail
-改成
-/mnt/vendor/mi_ext                                      /mi_ext                ext4    ro,bind                                              wait,nofail
-```
-ramdisk\system\etc\ueventd.rc  
-```
-/dev/hw_random            0440   root       system
-改成
-/dev/hw_random            0640   root       system
-```
-## vendor_boot分区
-ramdisk\first_stage_ramdisk\fstab.qcom  
-照搬vendor\etc\fstab.qcom
+骁龙GPU驱动更新（来自酷安 诺蓝）  
+vendor\lib  
+vendor\lib64
+## boot分区，用5pro的，不用改
+## vendor_boot分区，用5pro的，不用改
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
 然后用lpmake打包成super img  
@@ -333,7 +322,7 @@ vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里�
 这种的情况就需要专门的脚本和工具了  
 由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
 dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可  
-解包打包偷懒就找个安卓工具箱，米欧、dna、多幸运之类的，直接一键打包  
+解包打包偷懒就找个安卓工具箱，SYT、米欧、dna、多幸运之类的，直接一键打包  
 ## 关闭avb验证  
 可选，修改fstab.qcom去除avb代码  
 vendor\etc\fstab.qcom  
