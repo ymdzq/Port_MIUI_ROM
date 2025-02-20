@@ -1,5 +1,6 @@
 | 类型 | 设备 | 安卓版本 | 移植 | 链接 |
 | :-: | :-: | :-: | :-: | :-: |
+| 平板 | Xiaomi Pad 5 Pro | Android 15 | 移植Xiaomi Pad 6 Pro | [OS2.0.4.0_V_Pad](https://github.com/ymdzq/Port_MIUI_ROM/blob/OS2.0.4.0_V_Pad/XIAOMIPAD5PRO.md) |
 | 平板 | Xiaomi Pad 5 Pro | Android 14 | 移植Xiaomi Pad 6 | [OS2.0.4.0_Pad](https://github.com/ymdzq/Port_MIUI_ROM/blob/OS2.0.4.0_Pad/XIAOMIPAD5PRO.md) |
 | 平板 | Xiaomi Pad 5 Pro | Android 14 | 移植Xiaomi Pad 6 Pro | [OS1.0.12.0_Pad](https://github.com/ymdzq/Port_MIUI_ROM/blob/OS1.0.12.0_Pad/XIAOMIPAD5PRO.md) |
 | 平板 | Xiaomi Pad 5 Pro | Android 14 | 移植Xiaomi Pad 6S Pro 12.4 | [OS1.0.7.0_Pad](https://github.com/ymdzq/Port_MIUI_ROM/blob/OS1.0.7.0_Pad/XIAOMIPAD5PRO.md) |
