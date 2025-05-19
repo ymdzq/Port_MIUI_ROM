@@ -1,10 +1,11 @@
 # 小米平板5 PRO 移植小米平板6 11英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.2.0，移植文件来源于PIPA_OS2.0.4.0  
-这里推荐一下隔壁大佬的[HyperOS 移植项目](https://github.com/toraidl/hyperos_port)，有很多移植澎湃的经验、修改启发  
+基于ELISH_OS1.0.2.0，移植文件来源于PIPA_OS2.0.7.0  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
-由于修改了系统文件，所以avb验证肯定是要关的，而想保证各种app兼容性，所以我选择保持selinux enforce，即不集成pc版wps  
+由于修改了系统文件，所以avb验证肯定是要关的。  
+而想保证各种app兼容性，所以建议保持selinux enforce，要么保持5pro原版sepolicy放弃pc引擎，要么移植6的sepolicy。  
+集成pc版wps需要一个支持erofs文件系统的内核，因为linux容器使用了erofs文件系统打包的img  
 如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
 ## mi_ext分区修改，在5Pro的基础上，覆盖6的所有文件
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
@@ -13,7 +14,7 @@ build.prop修改机型代号，这里这个代号是miui ota更新服务器用�
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS2.0.4.0.UKYCNXM
+ro.mi.os.version.incremental=OS2.0.7.0.UKYCNXM
 ```
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来，这个部分提到的文件需要从6Max(yudi)的rom中提取  
@@ -25,12 +26,42 @@ mi_ext\product\overlay\signed_PLATFORM_cf766d1e91_app_sec_overlay-release-unsign
 product\data-app\MIUISecurityManager\MIUISecurityManager.apk  
 ## odm分区，用5pro的，不用改
 这个分区是跟vendor分区配套的，目前无需修改  
+## 可选odm分区修改，补全PC版WPS
+odm\bin\hw\mslgservice  
+odm\bin\clear-cajdata.sh  
+odm\bin\clear-wpsdata.sh  
+odm\bin\losetup.sh  
+odm\bin\start-rootfs.sh  
+odm\bin\tar-rootfs.sh  
+odm\etc\assets\md5.txt  
+odm\etc\assets\mslgusrimg  
+odm\etc\assets\rootfs-24.11.22.tgz  
+odm\etc\init\mslgservice.rc  
+odm\etc\selinux\precompiled_sepolicy  
+odm\etc\selinux\precompiled_sepolicy.plat_sepolicy_and_mapping.sha256  
+odm\etc\selinux\precompiled_sepolicy.product_sepolicy_and_mapping.sha256  
+odm\etc\selinux\precompiled_sepolicy.system_ext_sepolicy_and_mapping.sha256  
+
+修改tar-rootfs.sh中的验证机型
+```
+#删除
+if [[ $device == "sheng" || $device == "pipa" || $device == "yudi" || $device == "liuqin" ]]; then
+#改成
+if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device == "dagu" ]]; then
+```
+修改odm\etc\build.prop添加mslg
+```
+# Add xiaomi-wps-build-prop
+ro.vendor.mslg.rootfs.version=rootfs-24.11.22.tgz
+sys.mslg.available=1
+```
 ## product分区修改，整体上照搬6，但要注意以下部分
 pc版wps相关文件  
 访问linux容器的rdp后端MSLgRdp，PC 框架？和交互操作的前端WpsLauncher  
-不集成pc版wps可以直接删除  
+不集成pc版wps可以直接删除，集成则保留  
 product\app\MSLgRdp   
 product\data-app\WpsLauncher  
+product\data-app\CAJLauncher  
 
 product\app  
 保留5pro小爱翻译 AiAsstVision  
@@ -106,6 +137,53 @@ product\etc\device_features\pipa.xml
         <item>120</item>
         <item>60</item>
     </integer-array>
+
+    <!-- 一些米板6功能，未测试是否生效，可能仅显示开关 -->
+    <!-- whether support expert primary -->
+    <bool name="need_remove_expert_primary">false</bool>
+    <bool name="support_nature_mode">true</bool>
+    <!-- whether support expert bright -->
+    <bool name="need_remove_expert_bright">true</bool>
+    <!-- whether support stylus quick note-->
+    <bool name="stylus_quick_note">true</bool>
+    <!-- device support screen enhance engine -->
+    <bool name="support_screen_enhance_engine">true</bool>
+    <!--Ignore installing the app in the current and below ram-->
+    <string-array name="ignoredAppsForPackages">
+        <item>16,com.xiaomi.drivemode</item>
+    </string-array>
+    <!-- Whether support Google rsa agreement -->
+    <bool name="support_google_rsa_protocol">true</bool>
+    <!-- whether support true color -->
+    <bool name="support_true_color">true</bool>
+    <!--Configuration for default color mode -->
+    <integer name="default_display_color_mode">3</integer>
+
+    <!-- gallery setting -->
+    <bool name="gallery_support_media_feature">true</bool>
+    <bool name="gallery_support_video_compress">true</bool>
+    <bool name="gallery_support_analytic_face_and_scene">true</bool>
+    <string name="gallery_cpu_series">8350</string>
+    <bool name="gallery_support_time_burst_video">true</bool>
+    <integer name="gallery_device_series">1</integer>
+    <bool name="support_local_ocr">true</bool>
+    <bool name="gallery_support_dolby">true</bool>
+
+    <!-- Whether support dolby version brighten -->
+    <bool name="support_dolby_version_brighten">true</bool>
+
+    <!--  system firware related settings from bsp-adapt  -->
+    <!--  these items are used by SecurityCenter  -->
+    <!--  MIUI ADD: PKMS_ParentalControl  -->
+    <bool name="support_parental_control">true</bool>
+    <!-- END PKMS_ParentalControl -->
+    <!-- Port ADD:  -->
+    <bool name="support_hdr_enhance">true</bool>
+    <!-- whether support AI Display-->
+    <bool name="support_AI_display">true</bool>
+    <!-- default rhythmic eyecare mode -->
+    <integer name="default_eyecare_mode">2</integer>
+
 ```
 修改屏幕亮度配置文件  
 product\etc\displayconfig\display_id_4630947141052476290.xml  
@@ -118,7 +196,7 @@ product\etc\displayconfig\display_id_4630946545580055169.xml
 这三个文件的内容是完全一样的，所以我选择删掉display_id_4630947141052476290.xml和display_id_4630947200012256898.xml，并且保留这三个xml文件，屏幕亮度调节就正常了  
 这里需要注意Overlay里面的AospFrameworkResOverlay.apk要换成5Pro的，否则会遇到自动亮度导致系统软重启的问题  
 product\overlay\AospFrameworkResOverlay.apk  
-需要apkeditor-1.4.2反编译修改，  
+需要apkeditor反编译修改，  
 替换所有default_wallpaper.jpg，  
 修改bools.xml  
 ```
@@ -145,8 +223,8 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.240624.001/OS2.0.4.0.UKYCNXM:user/release-keys
-ro.product.build.version.incremental=OS2.0.4.0.UKYCNXM
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
+ro.product.build.version.incremental=OS2.0.7.0.UKYCNXM
 
 ro.sf.lcd_density=360
 persist.miui.density_v2=360
@@ -172,6 +250,10 @@ persist.miui.auto_ui_enable=true
 debug.game.video.speed=true
 debug.game.video.support=true
 
+#HDR修复？
+persist.sys.support_ultra_hdr=true
+persist.sys.hdr_dimmer_supported=true
+
 #作用未知
 ro.config.miui_compat_enable=true
 ro.config.miui_appcompat_enable=true
@@ -187,7 +269,7 @@ product\media\theme\default\dynamicicons
 product\media\theme\default\icons  
 product\media\theme\default\miui_mod_icons\  
 
-默认开启通信共享  
+默认开启通信共享（来自Amktiao）  
 product\media\theme\default\framework-miui-res  
 
 保留5pro本身开机动画（分辨率匹配屏幕）  
@@ -198,7 +280,7 @@ DevicesAndroidOverlay主要影响圆角弧率、状态栏高度，aod服务（lc
 product\overlay\DevicesAndroidOverlay.apk  
 DevicesOverlay主要影响导航栏（小白条）布局以及圆角，充电动画  
 product\overlay\DevicesOverlay.apk  
-需要apkeditor-1.4.2反编译修改，  
+需要apkeditor反编译修改，  
 替换resources\package_1\res\drawable-nodpi\charge_animation_charge_icon.webp  
 替换resources\package_1\res\drawable-nodpi\charge_animation_turbo_icon.webp  
 替换resources\package_1\res\drawable-nodpi\wired_charge_video_bg_img.webp  
@@ -220,10 +302,21 @@ MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一
 product\overlay\MiuiFrameworkResOverlay.apk  
 MiuiBiometricResOverlay人脸识别资源文件空包  
 product\overlay\MiuiBiometricResOverlay.apk  
-
+SettingsRroDeviceTypeOverlay修复我的设备里的认证信息  
+product\overlay\SettingsRroDeviceTypeOverlay.apk  
+需要apkeditor反编译修改，  
+添加resources\package_1\res\drawable-440dpi\credentials_image_m2105k81ac.png  
+添加resources\package_1\res\drawable-xhdpi\credentials_image_m2105k81ac.png  
+添加resources\package_1\res\drawable-xxhdpi\credentials_image_m2105k81ac.png  
+添加resources\package_1\res\drawable-xxxhdpi\credentials_image_m2105k81ac.png  
+修改public.xml，id我不确定，随便写的不重复新id  
+```
+添加
+  <public id="0x7f030011" type="drawable" name="credentials_image_m2105k81ac" />
+```
 删除6相机，否则会提示机型不匹配无法使用然后退出，  
 目前澎湃只能用5.0以上版本的相机，老apk无法使用，同样会提示机型不匹配无法使用然后退出，  
-直接抄闪电flasshh的5.1通用相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
+直接小米11青春版（lisa）的5.1通用相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
 product\priv-app\MiuiCamera  
 并且删除两个oat文件  
 ## 可选product分区修改，补全小米平板缺失的工具app
@@ -251,14 +344,14 @@ system\system\framework\services.jar
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
 ```
-ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.4.0.UKYCNXM:user/release-keys
-ro.system_dlkm.build.version.incremental=OS2.0.4.0.UKYCNXM
+ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
+ro.system_dlkm.build.version.incremental=OS2.0.7.0.UKYCNXM
 ```
 system\system\build.prop
 ```
-ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.4.0.UKYCNXM:user/release-keys
-ro.system.build.version.incremental=OS2.0.4.0.UKYCNXM
-ro.build.version.incremental=OS2.0.4.0.UKYCNXM
+ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
+ro.system.build.version.incremental=OS2.0.7.0.UKYCNXM
+ro.build.version.incremental=OS2.0.7.0.UKYCNXM
 
 #玄学优化
 #加密状态-已加密
@@ -280,8 +373,8 @@ ro.kernel.checkjni=0
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.4.0.UKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=OS2.0.4.0.UKYCNXM
+ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=OS2.0.7.0.UKYCNXM
 ```
 zram配置文件，提取自6Pro OS2.0.4.0，添加平板5系列、6系列ram/zram容量1：1  
 system_ext\etc\perfinit_bdsize_zram.conf
@@ -442,7 +535,26 @@ system_ext\etc\perfinit_bdsize_zram.conf
 }
 ```
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
-从6的OS2.0.4.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
+从6的OS2.0.7.0提取以下文件替换，修复selinux权限  
+vendor\etc\selinux\plat_pub_versioned.cil  
+vendor\etc\selinux\vendor_file_contexts  
+vendor\etc\selinux\vendor_hwservice_contexts  
+vendor\etc\selinux\vendor_property_contexts  
+vendor\etc\selinux\vendor_sepolicy.cil  
+vendor\etc\selinux\vendor_service_contexts  
+
+修改fstab.qcom，加入erofs文件系统挂载（需配合第三方内核）
+vendor\etc\fstab.qcom
+```
+system                                                  /system                erofs   ro                                                   wait,slotselect,avb=vbmeta_system,logical,first_stage_mount,avb_keys=/avb/q-gsi.avbpubkey:/avb/r-gsi.avbpubkey:/avb/s-gsi.avbpubkey
+system_ext                                              /system_ext            erofs   ro                                                   wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+product                                                 /product               erofs   ro                                                   wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+vendor                                                  /vendor                erofs   ro                                                   wait,slotselect,avb,logical,first_stage_mount
+odm                                                     /odm                   erofs   ro                                                   wait,slotselect,avb,logical,first_stage_mount
+mi_ext                                                  /mnt/vendor/mi_ext     erofs   ro                                                   wait,slotselect,avb=vbmeta,logical,first_stage_mount,nofail
+
+```
+从6的OS2.0.7.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
 vendor\lib\libbluetooth_audio_session_qti.so  
 vendor\lib\libbluetooth_audio_session_qti_2_1.so  
 vendor\lib64\libbluetooth_audio_session_qti.so  
@@ -460,6 +572,21 @@ vendor.display.enable_display_extensions=1
 ```
 ## boot分区，用5pro的，不用改
 ## vendor_boot分区，用5pro的，不用改
+## 可选boot分区修改，kernel image替换为第三方内核
+## 可选dtbo分区，直接用第三方内核dtbo.img替换
+## 可选vendor_boot分区修改
+修改fstab.qcom，加入erofs文件系统挂载（需配合第三方内核）  
+vendor_boot\ramdisk\first_stage_ramdisk\fstab.qcom  
+直接用上面改好的vendor\etc\fstab.qcom替换  
+
+第三方内核配套的dtb文件  
+dtb  
+
+第三方内核配套的cmdline参数  
+header
+```
+cmdline=console=ttyMSM0,115200n8 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket cgroup_disable=pressure reboot=panic_warm cnss2.disable_nv_mac=1 quiet audit=0 mitigations=off kpti=off ssbd=force-off noirqdebug nodebugmon buildvariant=user
+```
 ## 重新打包mi_ext、odm、system、system_ext、vendor、product分区
 先用make_ext4fs或者e2fsdroid+mke2fs打包为raw image，  
 然后用lpmake打包成super img  
@@ -467,15 +594,13 @@ vab机器一般是线刷用fastboot刷进super分区，卡刷是在recovery里�
 常见的情况也有使用zstd工具把super压缩成zst格式（打包zst需要raw格式的super.img），在线刷、卡刷的时候再解压，这种用压缩解压的时间来节省刷机包占用空间大小的做法，  
 这种的情况就需要专门的脚本和工具了  
 由于无wps版由于不需要修改odm、vendor分区，所以理论上其实你可以直接用fastbootd模式刷入mi_ext、system、system_ext、product分区  
+集成wps会因为空间不够打包失败，所以需要精简更多文件，或者使用erofs文件系统压缩打包系统分区  
 dsu包的做法就是直接把mi_ext、system、system_ext、product分区的raw image文件打包成一个zip或者gz文件即可  
 解包打包偷懒就找个安卓工具箱，SYT、米欧、dna、多幸运之类的，直接一键打包  
 ## 关闭avb验证  
 可选，修改fstab.qcom去除avb代码  
 vendor\etc\fstab.qcom  
 把system那一行的flags从`,avb_keys=`开始把后面的内容全删除，所有`,avb=vbmeta_system`删除，所有`,avb=vbmeta`删除，  
-
-可选，vendor_boot修改header在最后增加设置宽容的代码，如果要打包pc版wps就设置一下宽容，如果不需要改vendor就算了  
-`androidboot.selinux=permissive`
 
 修改vbmeta.img、vbmeta_system.img，关闭avb验证，这玩意得用十六进制编辑器或者打包工具修改，  
 我看米欧是修改的十六进制0000007B这个地址00改成02，这个改法跟下面两条命令是同样的效果  
