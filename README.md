@@ -1,6 +1,6 @@
 # 小米平板5 PRO 移植小米平板6 11英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.2.0，移植文件来源于PIPA_OS2.0.7.0  
+基于ELISH_OS1.0.2.0，移植文件来源于PIPA_OS2.0.10.0  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
 由于修改了系统文件，所以avb验证肯定是要关的。  
@@ -14,7 +14,7 @@ build.prop修改机型代号，这里这个代号是miui ota更新服务器用�
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS2.0.7.0.UKYCNXM
+ro.mi.os.version.incremental=OS2.0.10.0.UKYCNXM
 ```
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来，这个部分提到的文件需要从6Max(yudi)的rom中提取  
@@ -24,8 +24,21 @@ mi_ext\product\framework\miui-uninstall-empty.jar
 mi_ext\product\overlay\signed_PLATFORM_cf766d1e91_app_sec_overlay-release-unsigned.apk  
 
 product\data-app\MIUISecurityManager\MIUISecurityManager.apk  
-## odm分区，用5pro的，不用改
-这个分区是跟vendor分区配套的，目前无需修改  
+## odm分区
+处理cit扬声器校准  
+odm\etc\cit_param_config.json  
+```
+                "speaker_calibration_bin_str":"spkcal_elish",
+                "speaker_calibration_cmds":["spkcal_elish -c","spkcal_elish -m"]
+```
+替换为
+```
+                "speaker_calibration_cmds": [
+                    "spkcal  -c ",
+                    "spkcal  -m "
+                ]
+```
+spkcal_elish不支持安卓15，所以修复不了，可选spkcal_dagu代替，但是5pro有8个扬声器，dagu只能校准4个  
 ## 可选odm分区修改，补全PC版WPS
 odm\bin\hw\mslgservice  
 odm\bin\clear-cajdata.sh  
@@ -55,6 +68,18 @@ if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device =
 ro.vendor.mslg.rootfs.version=rootfs-24.11.22.tgz
 sys.mslg.available=1
 ```
+可选补全PC版CAD，需要从小米平板7sPro或者小米平板7ultra提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
+odm\bin\clear-caddata.sh  
+odm\bin\set_dns.sh  
+odm\etc\assets\md5.txt  
+odm\etc\assets\mslgusrimg  
+odm\etc\assets\rootfs-25.04.23.tgz  
+odm\etc\init\mslgservice.rc  
+
+修改odm\etc\build.prop  
+```
+ro.vendor.mslg.rootfs.version=rootfs-25.04.23.tgz
+```
 ## product分区修改，整体上照搬6，但要注意以下部分
 pc版wps相关文件  
 访问linux容器的rdp后端MSLgRdp，PC 框架？和交互操作的前端WpsLauncher  
@@ -62,12 +87,13 @@ pc版wps相关文件
 product\app\MSLgRdp   
 product\data-app\WpsLauncher  
 product\data-app\CAJLauncher  
+product\data-app\CADLauncher  
 
 product\app  
 保留5pro小爱翻译 AiAsstVision  
 （a13澎湃内置的版本号是4.6.0，可能需要使用模块解锁实时字幕功能）  
 删除6人脸识别解锁 Biometric  
-保留5pro人脸识别解锁 MiuiBiometric3373  
+保留5Pro人脸识别解锁 MiuiBiometric3373  
 替换AnalyticsCore（来自白羊唐黎明）  
 
 按需精简  
@@ -186,14 +212,14 @@ product\etc\device_features\pipa.xml
 
 ```
 修改屏幕亮度配置文件  
-product\etc\displayconfig\display_id_4630947141052476290.xml  
-product\etc\displayconfig\display_id_4630947200012256898.xml  
+product\etc\displayconfig\display_id_4630946808805831297.xml  
+product\etc\displayconfig\display_id_4630946922172900481.xml  
 
 5pro屏幕的xml文件为：  
 product\etc\displayconfig\display_id_19260527152667265.xml  
 product\etc\displayconfig\display_id_4630946481717202305.xml  
 product\etc\displayconfig\display_id_4630946545580055169.xml  
-这三个文件的内容是完全一样的，所以我选择删掉display_id_4630947141052476290.xml和display_id_4630947200012256898.xml，并且保留这三个xml文件，屏幕亮度调节就正常了  
+这三个文件的内容是完全一样的，所以我选择再复制两个替换display_id_4630946808805831297.xml和display_id_4630946922172900481.xml，保留这五个xml文件，屏幕亮度调节就正常了  
 这里需要注意Overlay里面的AospFrameworkResOverlay.apk要换成5Pro的，否则会遇到自动亮度导致系统软重启的问题  
 product\overlay\AospFrameworkResOverlay.apk  
 需要apkeditor反编译修改，  
@@ -223,8 +249,8 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
-ro.product.build.version.incremental=OS2.0.7.0.UKYCNXM
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:14/UKQ1.240624.001/OS2.0.10.0.UKYCNXM:user/release-keys
+ro.product.build.version.incremental=OS2.0.10.0.UKYCNXM
 
 ro.sf.lcd_density=360
 persist.miui.density_v2=360
@@ -264,6 +290,9 @@ product\etc\autoui_list.xml
 product\etc\embedded_rules_list.xml  
 product\etc\fixed_orientation_list.xml  
 
+内置完美横屏计划窗口控制器3.0附加文件（配合system_ext修改，可以屏蔽任意应用顶栏三个点）  
+product\etc\dot_black_list.json
+
 内置完美图标计划  
 product\media\theme\default\dynamicicons  
 product\media\theme\default\icons  
@@ -300,6 +329,15 @@ product\overlay\DevicesOverlay.apk
 ```
 MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一些网络制式的属性  
 product\overlay\MiuiFrameworkResOverlay.apk  
+可选修改，通信共享，跟上面那个framework-miui-res效果是一样的，二个方案选一即可  
+修改bools.xml，添加  
+```
+  <bool name="config_celluar_shared_support">true</bool>
+```
+修改public.xml，id我不确定，随便写的不重复新id，添加  
+```
+  <public id="0x7f02000e" type="bool" name="config_celluar_shared_support" />
+```
 MiuiBiometricResOverlay人脸识别资源文件空包  
 product\overlay\MiuiBiometricResOverlay.apk  
 SettingsRroDeviceTypeOverlay修复我的设备里的认证信息  
@@ -318,6 +356,9 @@ product\overlay\SettingsRroDeviceTypeOverlay.apk
 目前澎湃只能用5.0以上版本的相机，老apk无法使用，同样会提示机型不匹配无法使用然后退出，  
 直接小米11青春版（lisa）的5.1通用相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
 product\priv-app\MiuiCamera  
+并且删除两个oat文件  
+替换修改版应用包安装组件  
+product\priv-app\MIUIPackageInstallerVariants  
 并且删除两个oat文件  
 ## 可选product分区修改，补全小米平板缺失的工具app
 CarWith  
@@ -341,17 +382,32 @@ product\etc\permissions\privapp-permissions-product.xml
 可选修改  
 签名破解，要修改系统app，就需要修改services.jar文件，我这里使用的SYT_ROM工具提供的插件自动修改  
 system\system\framework\services.jar  
+
+可选修改，内置完美横屏计划（防止云控修改，感觉这里会影响selinux，不推荐修改）  
+system\system\bin\project_treble_magic_window_service.sh  
+system\system\etc\init\project_treble_magic_window_service.rc  
+system\system\etc\ProjectTrebleMagicWindowService\autoui_list.xml  
+system\system\etc\ProjectTrebleMagicWindowService\embedded_rules_list.xml  
+system\system\etc\ProjectTrebleMagicWindowService\fixed_orientation_list.xml  
+修改system\system\etc\selinux\plat_sepolicy.cil，添加  
+```
+(allow init system_file (file (execute execute_no_trans open read getattr)))
+(allow init shell_exec (file (execute execute_no_trans open read getattr)))
+(allow toolbox system_data_file (file (read open write getattr setattr create unlink relabelfrom relabelto)))
+(allow toolbox self (capability (dac_read_search dac_override chown fowner fsetid linux_immutable)))
+```
+
 build.prop修改机型代号、版本指纹  
 system\system\system_dlkm\etc\build.prop
 ```
-ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
-ro.system_dlkm.build.version.incremental=OS2.0.7.0.UKYCNXM
+ro.system_dlkm.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.10.0.UKYCNXM:user/release-keys
+ro.system_dlkm.build.version.incremental=OS2.0.10.0.UKYCNXM
 ```
 system\system\build.prop
 ```
-ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
-ro.system.build.version.incremental=OS2.0.7.0.UKYCNXM
-ro.build.version.incremental=OS2.0.7.0.UKYCNXM
+ro.system.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.10.0.UKYCNXM:user/release-keys
+ro.system.build.version.incremental=OS2.0.10.0.UKYCNXM
+ro.build.version.incremental=OS2.0.10.0.UKYCNXM
 
 #玄学优化
 #加密状态-已加密
@@ -373,8 +429,25 @@ ro.kernel.checkjni=0
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.7.0.UKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=OS2.0.7.0.UKYCNXM
+ro.system_ext.build.fingerprint=Android/missi_pad_cn/missi:14/UKQ1.240624.001/OS2.0.10.0.UKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=OS2.0.10.0.UKYCNXM
+
+#完美横屏附加功能主动适配
+ro.config.sothx_project_treble_support_magic_window_fix=true
+ro.config.sothx_project_treble_support_cvw_full=true
+ro.config.sothx_project_treble_cvw_full_version=2
+ro.config.sothx_project_treble_support_disable_resize_black_list=true
+ro.config.sothx_project_treble_disable_resize_black_list_version=1
+ro.config.sothx_project_treble_support_default_desktop_mode_max_freeform_count=true
+ro.config.sothx_project_treble_default_desktop_mode_max_freeform_count_version=1
+ro.config.sothx_project_treble_support_miui_desktop_mode_max_freeform_count=true
+ro.config.sothx_project_treble_miui_desktop_mode_max_freeform_count_version=1
+ro.config.sothx_project_treble_support_disable_freeform_bottom_caption=true
+ro.config.sothx_project_treble_disable_freeform_bottom_caption_version=1
+ro.config.sothx_project_treble_support_immerse_freeform_bottom_caption=true
+ro.config.sothx_project_treble_immerse_freeform_bottom_caption_version=1
+ro.config.sothx_project_treble_support_custom_dot_black_list=true
+ro.config.sothx_project_treble_custom_dot_black_list_version=1
 ```
 zram配置文件，提取自6Pro OS2.0.4.0，添加平板5系列、6系列ram/zram容量1：1  
 system_ext\etc\perfinit_bdsize_zram.conf
@@ -534,8 +607,14 @@ system_ext\etc\perfinit_bdsize_zram.conf
     ]
 }
 ```
+完美横屏附加功能修改  
+system_ext\framework\miui-embedding-window.jar  
+system_ext\framework\miui-services.jar  
+system_ext\priv-app\MiuiSystemUI\MiuiSystemUI.apk  
+system_ext\priv-app\Settings\Settings.apk  
+已经完成通过github action实现自动化修改https://github.com/ymdzq/mipad_module  
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
-从6的OS2.0.7.0提取以下文件替换，修复selinux权限  
+从6的OS2.0.10.0提取以下文件替换，修复selinux权限  
 vendor\etc\selinux\plat_pub_versioned.cil  
 vendor\etc\selinux\vendor_file_contexts  
 vendor\etc\selinux\vendor_hwservice_contexts  
@@ -554,7 +633,7 @@ odm                                                     /odm                   e
 mi_ext                                                  /mnt/vendor/mi_ext     erofs   ro                                                   wait,slotselect,avb=vbmeta,logical,first_stage_mount,nofail
 
 ```
-从6的OS2.0.7.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
+从6的OS2.0.10.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
 vendor\lib\libbluetooth_audio_session_qti.so  
 vendor\lib\libbluetooth_audio_session_qti_2_1.so  
 vendor\lib64\libbluetooth_audio_session_qti.so  
