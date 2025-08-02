@@ -1,11 +1,11 @@
 # 小米平板5 PRO 移植小米平板6 Pro 11英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.2.0，移植文件来源于LIUQIN_OS2.0.203.0  
+基于ELISH_OS1.0.2.0，移植文件来源于LIUQIN_OS2.0.207.0  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
 由于修改了系统文件，所以avb验证肯定是要关的。  
 而想保证各种app兼容性，所以建议保持selinux enforce，要么保持5pro原版sepolicy放弃pc引擎，要么移植6的sepolicy。  
-集成pc版wps需要一个支持erofs文件系统的内核，因为linux容器使用了erofs文件系统打包的img  
+集成pc版wps需要一个支持erofs文件系统的内核，因为linux容器使用了erofs文件系统打包的img（https://www.coolapk.com/feed/66511232?s=N2IxM2UwMmQxYWRkNjJmZzY4YWVmNjM5ega1551或者https://www.coolapk.com/feed/66205342?s=MTkxNDBhNDExYWRkNjJmZzY4YWVmODIxega1551）  
 如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
 ## mi_ext分区修改，在5Pro的基础上，覆盖6Pro的所有文件
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
@@ -14,7 +14,7 @@ build.prop修改机型代号，这里这个代号是miui ota更新服务器用�
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS2.0.203.0.VKYCNXM
+ro.mi.os.version.incremental=OS2.0.207.0.VKYCNXM
 ```
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来，这个部分提到的文件需要从6Max(yudi)的rom中提取  
@@ -51,6 +51,9 @@ odm\etc\assets\mslgusrimg
 odm\etc\assets\rootfs-24.11.22.tgz  
 odm\etc\init\mslgservice.rc  
 odm\etc\selinux\precompiled_sepolicy  
+odm\etc\selinux\precompiled_sepolicy.plat_sepolicy_and_mapping.sha256  
+odm\etc\selinux\precompiled_sepolicy.product_sepolicy_and_mapping.sha256  
+odm\etc\selinux\precompiled_sepolicy.system_ext_sepolicy_and_mapping.sha256  
 
 修改tar-rootfs.sh中的验证机型
 ```
@@ -65,7 +68,7 @@ if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device =
 ro.vendor.mslg.rootfs.version=rootfs-24.11.22.tgz
 sys.mslg.available=1
 ```
-可选补全PC版CAD，需要从小米平板7sPro或者小米平板7ultra提取  
+可选补全PC版CAD，需要从小米平板7sPro或者小米平板7ultra提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
 odm\bin\clear-caddata.sh  
 odm\bin\set_dns.sh  
 odm\etc\assets\md5.txt  
@@ -341,8 +344,8 @@ build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭�
 product\etc\build.prop
 ```
 ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:15/AQ3A.241006.001/OS2.0.203.0.VKYCNXM:user/release-keys
-ro.product.build.version.incremental=OS2.0.203.0.VKYCNXM
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
+ro.product.build.version.incremental=OS2.0.207.0.VKYCNXM
 
 persist.miui.density_v2=360
 ro.sf.lcd_density=360
@@ -401,6 +404,9 @@ ro.audio.3d_play=true
 product\etc\autoui_list.xml  
 product\etc\embedded_rules_list.xml  
 product\etc\fixed_orientation_list.xml  
+
+内置完美横屏计划窗口控制器3.0附加文件（配合system_ext修改，可以屏蔽任意应用顶栏三个点）  
+product\etc\dot_black_list.json
 
 内置完美图标计划  
 product\media\theme\default\dynamicicons  
@@ -491,6 +497,13 @@ product\overlay\SettingsRroDeviceTypeOverlay.apk
 添加
   <public id="0x7f030011" type="drawable" name="credentials_image_m2105k81ac" />
 ```
+内置启用小米工具AI功能叠加层文件  
+product\overlay\MiuiNotesOverlay.apk  
+product\overlay\MiuiSecurityCoreOverlay.apk  
+product\overlay\MiuiSoundrecorderOverlay.apk  
+product\overlay\MiuiThememanagerOverlay.apk  
+product\overlay\TransplantOverlay_Shadow.apk  
+
 指南针授权？  
 product\pangu\system\etc\permissions\signature-permission-pangu.xml添加  
 ```
@@ -558,10 +571,10 @@ system\system\etc\ProjectTrebleMagicWindowService\fixed_orientation_list.xml
 build.prop修改机型代号、版本指纹  
 system\system\build.prop
 ```
-ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.203.0.VKYCNXM:user/release-keys
-ro.system.build.version.incremental=OS2.0.203.0.VKYCNXM
-ro.build.version.incremental=OS2.0.203.0.VKYCNXM
-ro.build.description=missi-user 15 AQ3A.241006.001 OS2.0.203.0.VKYCNXM release-keys
+ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
+ro.system.build.version.incremental=OS2.0.207.0.VKYCNXM
+ro.build.version.incremental=OS2.0.207.0.VKYCNXM
+ro.build.description=missi-user 15 AQ3A.241006.001 OS2.0.207.0.VKYCNXM release-keys
 
 #玄学优化
 #加密状态-已加密
@@ -583,15 +596,27 @@ ro.kernel.checkjni=0
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.203.0.VKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=OS2.0.203.0.VKYCNXM
+ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=OS2.0.207.0.VKYCNXM
 
-#完美横屏主动适配（需要对应修改system_ext\framework\miui-embedding-window.jar）
+#完美横屏附加功能主动适配
 ro.config.sothx_project_treble_support_magic_window_fix=true
-
-#完美横屏解锁工作台模式无极小窗限制（需要对应修改system_ext\framework\miui-framework.jar和system_ext\priv-app\MiuiSystemUI\MiuiSystemUI.apk）
+ro.config.sothx_project_treble_support_vertical_screen_split=true
+ro.config.sothx_project_treble_vertical_screen_split_version=2
 ro.config.sothx_project_treble_support_cvw_full=true
-ro.config.sothx_project_treble_cvw_full_version=1
+ro.config.sothx_project_treble_cvw_full_version=2
+ro.config.sothx_project_treble_support_disable_resize_black_list=true
+ro.config.sothx_project_treble_disable_resize_black_list_version=1
+ro.config.sothx_project_treble_support_default_desktop_mode_max_freeform_count=true
+ro.config.sothx_project_treble_default_desktop_mode_max_freeform_count_version=1
+ro.config.sothx_project_treble_support_miui_desktop_mode_max_freeform_count=true
+ro.config.sothx_project_treble_miui_desktop_mode_max_freeform_count_version=1
+ro.config.sothx_project_treble_support_disable_freeform_bottom_caption=true
+ro.config.sothx_project_treble_disable_freeform_bottom_caption_version=1
+ro.config.sothx_project_treble_support_immerse_freeform_bottom_caption=true
+ro.config.sothx_project_treble_immerse_freeform_bottom_caption_version=1
+ro.config.sothx_project_treble_support_custom_dot_black_list=true
+ro.config.sothx_project_treble_custom_dot_black_list_version=1
 ```
 zram配置文件，改末尾  
 system_ext\etc\perfinit_bdsize_zram.conf
@@ -612,120 +637,14 @@ system_ext\etc\perfinit_bdsize_zram.conf
             "zram_size": {
                 "6":6144, "8":8192, "12":12288, "16":16384
 ```
-完美横屏主动适配，修改system_ext\framework\miui-embedding-window.jar  
-通过MT管理器反编译classes.edx，搜索：  
-```
-invoke-static {}, Landroid/sizecompat/MiuiSizeCompatManager;->getMiuiSizeCompatEnabledApps()Ljava/util/Map;
-
-move-result-object v2
-```
-替换为
-```
-invoke-static {}, Landroid/sizecompat/MiuiSizeCompatManager;->getMiuiSizeCompatEnabledApps()Ljava/util/Map;
-
-move-result-object v2
-
-const/4 v2, 0x0
-```
-完美横屏解锁工作台模式无极小窗限制，感谢绵狗 做梦书  
-miui-framework.jar\smali\classes\android\util\MiuiMultiWindowAdapter.smali  
-搜索并从.method public static blacklist getFreeformBlackList()Ljava/util/List;一直到下面第一个.end method的内容全删除，替换为
-```
-.method public static blacklist getFreeformBlackList()Ljava/util/List;
-    .registers 1
-
-    .line 1
-    sget-object v0, Landroid/util/MiuiMultiWindowAdapter;->sEmptyList:Ljava/util/List;
-    return-object v0
-.end method
-```
-MiuiSystemUI.apk\smali\classes3\com\android\wm\shell\common\split\SplitScreenUtils.smali  
-搜索.method public static isLeftRightSplit然后在这一行上面的空白处添加代码（只要在.method和上一个.end method之间插入就行，不一定要认准isLeftRightSplit，只要不破坏插.method开始.end method结束的规则，插在哪一个方式前面都没区别）
-```
-.method public static getVerticalSplitValue()I
-    .registers 5
-
-    .line 1
-    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
-    move-result-object v0
-
-    if-eqz v0, :not_enabled
-
-    const-string v1, "sothx_project_treble_vertical_screen_split_enable"
-
-    invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
-    move-result-object v2
-
-    const/4 v3, 0x0
-
-    invoke-static {v2, v1, v3}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I
-    move-result v1
-
-    if-eqz v1, :not_enabled
-
-    const/16 v0, 0x400
-    goto :end
-
-    :not_enabled
-    const/16 v0, 0x258
-
-    :end
-    return v0
-.end method
-```
-搜索const/16 v1, 0x258替换为
-```
-    invoke-static {}, Lcom/android/wm/shell/common/split/SplitScreenUtils;->getVerticalSplitValue()I
-    move-result v1
-```
-MiuiSystemUI.apk\smali\classes3\com\android\wm\shell\multitasking\miuiinfinitymode\MiuiInfinityModeSizeLevelConfig.smali  
-搜索.method public getLevelType然后在这一行上面的空白处添加代码（只要在.method和上一个.end method之间插入就行，不一定要认准getLevelType，只要不破坏插.method开始.end method结束的规则，插在哪一个方式前面都没区别）
-```
-.method public static getCvwFullEnabled()Z
-    .registers 5
-
-    .line 1
-    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
-    move-result-object v0
-
-    if-eqz v0, :return_false
-
-    const-string v1, "sothx_project_treble_cvw_full_enable"
-
-    invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
-    move-result-object v2
-
-    const/4 v3, 0x0
-
-    invoke-static {v2, v1, v3}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I
-    move-result v1
-
-    if-eqz v1, :return_false
-
-    const/4 v0, 0x1  # true
-    return v0
-
-:return_false
-    const/4 v0, 0x0  # false
-    return v0
-.end method
-```
-搜索"getLevelType unsupport cvw2.0 leve full packageName="在接下来的第一个move-result p0的下一行插入新代码  
-```
-    invoke-static {}, Lcom/android/wm/shell/multitasking/miuiinfinitymode/MiuiInfinityModeSizeLevelConfig;->getCvwFullEnabled()Z
-
-    move-result p0
-```
-修改resources\package_1\res\values\styles.xml  
-resources\package_1\res\values-night\styles.xml  
-兼容小米错误的资源数据-@style/null  
-```
-  <style name="ShortcutHelperTheme" parent="@style/null">
-替换为
-  <style name="ShortcutHelperTheme" parent="">
-```
+完美横屏附加功能修改  
+system_ext\framework\miui-embedding-window.jar  
+system_ext\framework\miui-services.jar  
+system_ext\priv-app\MiuiSystemUI\MiuiSystemUI.apk  
+system_ext\priv-app\Settings\Settings.apk  
+已经完成通过github action实现自动化修改https://github.com/ymdzq/mipad_module  
 ## vendor分区修改，整体上用5pro的，但要注意以下部分
-从米板6标准版的OS2.0.7.0提取以下文件替换，修复selinux权限  
+从米板6标准版的OS2.0.10.0提取以下文件替换，修复selinux权限  
 vendor\etc\selinux\plat_pub_versioned.cil  
 vendor\etc\selinux\vendor_file_contexts  
 vendor\etc\selinux\vendor_hwservice_contexts  
@@ -744,7 +663,7 @@ odm                                                     /odm                   e
 mi_ext                                                  /mnt/vendor/mi_ext     erofs   ro                                                   wait,slotselect,avb=vbmeta,logical,first_stage_mount,nofail
 
 ```
-从6标准版的OS2.0.7.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
+从6标准版的OS2.0.10.0提取以下文件替换，修复蓝牙耳机播放视频音画不同步bug，感谢云彩之枫  
 vendor\lib\libbluetooth_audio_session_qti.so  
 vendor\lib\libbluetooth_audio_session_qti_2_1.so  
 vendor\lib64\libbluetooth_audio_session_qti.so  
