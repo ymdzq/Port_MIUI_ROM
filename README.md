@@ -1,20 +1,20 @@
-# 小米平板5 PRO 移植小米平板6 Pro 11英寸 HyperOS记录
+# 小米平板5 PRO 5G 移植小米平板6 Pro 11英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.2.0，移植文件来源于LIUQIN_OS2.0.207.0  
+基于enuma_OS1.0.3.0，移植文件来源于LIUQIN_OS2.0.207.0  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
 由于修改了系统文件，所以avb验证肯定是要关的。  
 而想保证各种app兼容性，所以建议保持selinux enforce，要么保持5pro原版sepolicy放弃pc引擎，要么移植6的sepolicy。  
-集成pc版wps需要一个支持erofs文件系统的内核，因为linux容器使用了erofs文件系统打包的img（https://www.coolapk.com/feed/66511232?s=N2IxM2UwMmQxYWRkNjJmZzY4YWVmNjM5ega1551或者https://www.coolapk.com/feed/66205342?s=MTkxNDBhNDExYWRkNjJmZzY4YWVmODIxega1551）  
+集成pc版wps需要一个支持erofs文件系统的内核，因为linux容器使用了erofs文件系统打包的img（https://www.coolapk.com/feed/66511232?s=N2IxM2UwMmQxYWRkNjJmZzY4YWVmNjM5ega1551 或者https://www.coolapk.com/feed/66205342?s=MTkxNDBhNDExYWRkNjJmZzY4YWVmODIxega1551 ）  
 如果不集成，就不需要改vendor分区，随便在product分区里精简一点东西，就可以确保刷进机器那8.5G的super分区。  
 ## mi_ext分区修改，在5Pro的基础上，覆盖6Pro的所有文件
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
 把这个东西改掉的好处就是可以屏蔽更新，不会收到移植的那个机型的更新，导致用户误升级变砖  
-修改版本号为UKYCNXM  
+修改版本号为VKZCNXM  
 mi_ext\etc\build.prop
 ```
-ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS2.0.207.0.VKYCNXM
+ro.product.mod_device=enuma
+ro.mi.os.version.incremental=OS2.0.207.0.VKZCNXM
 ```
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来，这个部分提到的文件需要从6Max(yudi)的rom中提取  
@@ -28,8 +28,8 @@ product\data-app\MIUISecurityManager\MIUISecurityManager.apk
 处理cit扬声器校准  
 odm\etc\cit_param_config.json  
 ```
-                "speaker_calibration_bin_str":"spkcal_elish",
-                "speaker_calibration_cmds":["spkcal_elish -c","spkcal_elish -m"]
+                "speaker_calibration_bin_str":"spkcal_enuma",
+                "speaker_calibration_cmds":["spkcal_enuma -c","spkcal_enuma -m"]
 ```
 替换为
 ```
@@ -38,7 +38,7 @@ odm\etc\cit_param_config.json
                     "spkcal  -m "
                 ]
 ```
-spkcal_elish不支持安卓15，所以修复不了，可选spkcal_dagu代替，但是5pro有8个扬声器，dagu只能校准4个  
+spkcal_enuma不支持安卓15，所以修复不了，可选spkcal_dagu代替，但是5pro有8个扬声器，dagu只能校准4个  
 ## 可选odm分区修改，补全PC版WPS
 odm\bin\hw\mslgservice  
 odm\bin\clear-cajdata.sh  
@@ -60,7 +60,7 @@ odm\etc\selinux\precompiled_sepolicy.system_ext_sepolicy_and_mapping.sha256
 #删除
 if [[ $device == "sheng" || $device == "pipa" || $device == "yudi" || $device == "liuqin" ]]; then
 #改成
-if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device == "dagu" ]]; then
+if [[ $device == "nabu" || $device == "enuma" || $device == "enuma" || $device == "dagu" ]]; then
 ```
 修改odm\etc\build.prop添加mslg
 ```
@@ -68,17 +68,17 @@ if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device =
 ro.vendor.mslg.rootfs.version=rootfs-24.11.22.tgz
 sys.mslg.available=1
 ```
-可选补全PC版CAD，需要从小米平板7sPro或者小米平板7ultra提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
+可选补全PC版CAD，需要从小米平板7Pro或者小米平板7SPro提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
 odm\bin\clear-caddata.sh  
 odm\bin\set_dns.sh  
 odm\etc\assets\md5.txt  
 odm\etc\assets\mslgusrimg  
-odm\etc\assets\rootfs-25.04.23.tgz  
+odm\etc\assets\rootfs-25.07.03.tgz  
 odm\etc\init\mslgservice.rc  
 
 修改odm\etc\build.prop  
 ```
-ro.vendor.mslg.rootfs.version=rootfs-25.04.23.tgz
+ro.vendor.mslg.rootfs.version=rootfs-25.07.03.tgz
 ```
 ## product分区修改，整体上照搬6Pro，但要注意以下部分
 pc版wps相关文件  
@@ -90,8 +90,8 @@ product\data-app\CAJLauncher
 product\data-app\CADLauncher  
 
 product\app  
-保留5pro小爱翻译 AiAsstVision  
-（a13澎湃内置的版本号是4.6.0，可能需要使用模块解锁实时字幕功能）  
+提取7Pro小爱翻译 AiAsstVision  
+（pipa本来的小爱翻译是离线翻译模型，需要使用模块解锁实时字幕功能，否则整个翻译app无法打开，但解锁后支持elish和enuma使用中英文离线翻译。已测试lisa、ruan、dizi、muyu使用的小爱翻译是在线翻译模型，使用模块解锁实时字幕功能可以在线翻译多国语言，不解锁实时字幕elish和enuma也可以使用其他翻译功能）  
 删除6Pro人脸识别解锁 Biometric  
 保留5Pro人脸识别解锁 MiuiBiometric3373  
 替换AnalyticsCore（来自白羊唐黎明）  
@@ -105,7 +105,7 @@ product\app\MSA
 data-app可卸载的预装app，其中不少app都是可以在应用商店里重新安装的，  
 product\data-app\  
 因为平板5pro默认的super分区只有8.5G，而且重新打包必须预留更多空间，所以可以精简这里，把super精简到7.4G以下，越小越好  
-我个人是觉得没必要搞极限精简，很多常用自带功能用户到时候又要想办法装回来，挺烦人的  
+5G版因为要保留网络注册和短信功能，需要更多空间  
 百度输入法小米版  
 product\data-app\BaiduIME  
 PC版CAJ阅读器  
@@ -135,10 +135,10 @@ product\data-app\Padapp
 米家  
 product\data-app\SmartHome  
 
-设备功能配置文件，本来正常代号要用elish稳定使用的话，删除liuqin.xml，照搬elish.xml就好了，  
+设备功能配置文件，本来正常代号要用enuma稳定使用的话，删除liuqin.xml，照搬enuma.xml就好了，  
 但是如果你要全局改机器代号的话，这里配置文件也要改名成liuqin.xml，  
-所以我是建议干脆把elish.xml复制两份一个叫elish.xml一个叫liuqin.xml，都放进去，这样用哪个代号也不要紧  
-product\etc\device_features\elish.xml  
+所以我是建议干脆把enuma.xml复制两份一个叫enuma.xml一个叫liuqin.xml，都放进去，这样用哪个代号也不要紧  
+product\etc\device_features\enuma.xml  
 product\etc\device_features\liuqin.xml  
 修改预装app列表（剃刀计划）
 ```
@@ -207,10 +207,18 @@ product\etc\device_features\liuqin.xml
     <bool name="support_smart_fps">true</bool>
     <!-- smart fps value-->
     <integer name="smart_fps_value">120</integer>
-    <integer-array name="fpsList">
-        <item>120</item>
-        <item>60</item>
-    </integer-array>
+
+    <!-- 支持熄屏听剧 -->
+    <!-- whether remove screen off hold on feature -->
+    <bool name="remove_screen_off_hold_on">false</bool>
+
+    <!-- 支持语音通话工具箱 -->
+    <!--whether the device supports conversation_tool_box voip record -->
+    <bool name="support_conversation_toolbox_voiprecord">true</bool>
+
+    <!-- 支持游戏HDR -->
+    <!-- whether support displayfeature gamemode HDR -->
+    <bool name="support_displayfeature_gamemode_HDR">true</bool>
 
     <!-- 一些米板6功能，未测试是否生效，可能仅显示开关 -->
     <!-- whether support expert primary -->
@@ -294,19 +302,23 @@ product\overlay\AospFrameworkResOverlay.apk
     <item>com.miui.mishare.connectivity</item>
   </string-array>
 ```
-修改bools.xml，添加  
+修改bools.xml  
 ```
+可选修改
+  <bool name="config_voice_capable">true</bool>
+添加
   <bool name="config_dozeAlwaysOnEnabled">false</bool>
+  <bool name="config_sms_capable">true</bool>
 ```
 修改integers.xml  
 ```
   <integer name="config_screenBrightnessDim">13</integer>
-  <integer name="config_screenBrightnessSettingDefault">307</integer>
+  <integer name="config_screenBrightnessSettingDefault">100</integer>
   <integer name="config_screenBrightnessSettingMaximum">2047</integer>
   <integer name="config_screenBrightnessSettingMinimum">6</integer>
 改成
   <integer name="config_screenBrightnessDim_hyper">13</integer>
-  <integer name="config_screenBrightnessSettingDefault_hyper">307</integer>
+  <integer name="config_screenBrightnessSettingDefault_hyper">100</integer>
   <integer name="config_screenBrightnessSettingMaximum_hyper">2047</integer>
   <integer name="config_screenBrightnessSettingMinimum_hyper">6</integer>
 ```
@@ -322,6 +334,7 @@ product\overlay\AospFrameworkResOverlay.apk
   <public id="0x7f01000d" type="array" name="config_primaryCredentialProviderService" />
   <public id="0x7f01000b" type="array" name="disallowed_apps_managed_profile" />
   <public id="0x7f020007" type="bool" name="config_dozeAlwaysOnEnabled" />
+  <public id="0x7f020008" type="bool" name="config_sms_capable" />
   <public id="0x7f070003" type="string" name="config_defaultAttentionService" />
   <public id="0x7f070004" type="string" name="config_defaultCredentialManagerHybridService" />
 
@@ -343,12 +356,16 @@ product\etc\android_dm_table_b
 build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭内存扩展  
 product\etc\build.prop
 ```
-ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.product.build.version.incremental=OS2.0.207.0.VKYCNXM
+ro.product.product.name=enuma
+ro.product.build.fingerprint=Xiaomi/enuma/miproduct:15/AQ3A.241006.001/OS2.0.207.0.VKZCNXM:user/release-keys
+ro.product.build.version.incremental=OS2.0.207.0.VKZCNXM
 
 persist.miui.density_v2=360
 ro.sf.lcd_density=360
+
+#设置基带功能
+ro.vendor.radio.5g=3
+ro.vendor.radio.features_common=3
 
 #默认关闭内存扩展
 persist.miui.extm.enable=0
@@ -379,6 +396,7 @@ debug.game.video.support=true
 
 #HDR修复？
 persist.sys.support_ultra_hdr=true
+persist.sys.adaptive_hdr_supported=true
 persist.sys.hdr_dimmer_supported=true
 
 #加回5Pro本身的玄学优化，性能调度
@@ -392,10 +410,21 @@ persist.sys.minfree_8g=73728,92160,110592,387072,1105920,1451520
 #内存扩展DM映射器回写块设备优化
 persist.miui.extm.dm_opt.enable=true
 
-#作用未知
-persist.sys.launch_response_optimization.enable=true
+#app调整游戏显示布局功能
 ro.config.miui_compat_enable=true
 ro.config.miui_appcompat_enable=true
+
+#静置时维持刷新率时长
+ro.surface_flinger.use_content_detection_for_refresh_rate=true
+ro.surface_flinger.set_idle_timer_ms=2147483647
+ro.surface_flinger.set_touch_timer_ms=2147483647
+ro.surface_flinger.set_display_power_timer_ms=2147483647
+
+#可升级系统app
+persist.sys.allow_sys_app_update=true
+
+#作用未知
+persist.sys.launch_response_optimization.enable=true
 ro.surface_flinger.game_default_frame_rate_override=120
 ro.miui.shell_anim_enable_fcb=true
 ro.audio.3d_play=true
@@ -412,9 +441,6 @@ product\etc\dot_black_list.json
 product\media\theme\default\dynamicicons  
 product\media\theme\default\icons  
 product\media\theme\default\miui_mod_icons\  
-
-默认开启通信共享（来自Amktiao）  
-product\media\theme\default\framework-miui-res  
 
 保留5pro本身开机动画（分辨率匹配屏幕）  
 product\media\bootanimation.zip  
@@ -473,33 +499,22 @@ product\overlay\DevicesOverlay.apk
   <public id="0x7f03006f" type="dimen" name="miui_keyguard_pin_view_password_entry_bg_corners" />
 ```
 MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一些网络制式的属性  
-product\overlay\MiuiFrameworkResOverlay.apk  
-可选修改，通信共享，跟上面那个framework-miui-res效果是一样的，二个方案选一即可  
-修改bools.xml，添加  
-```
-  <bool name="config_celluar_shared_support">true</bool>
-```
-修改public.xml，id我不确定，随便写的不重复新id，添加  
-```
-  <public id="0x7f02000e" type="bool" name="config_celluar_shared_support" />
-```
 MiuiBiometricResOverlay人脸识别资源文件空包  
 product\overlay\MiuiBiometricResOverlay.apk  
 SettingsRroDeviceTypeOverlay修复我的设备里的认证信息  
 product\overlay\SettingsRroDeviceTypeOverlay.apk  
 需要apkeditor反编译修改，  
-添加resources\package_1\res\drawable-440dpi\credentials_image_m2105k81ac.png  
-添加resources\package_1\res\drawable-xhdpi\credentials_image_m2105k81ac.png  
-添加resources\package_1\res\drawable-xxhdpi\credentials_image_m2105k81ac.png  
-添加resources\package_1\res\drawable-xxxhdpi\credentials_image_m2105k81ac.png  
+添加resources\package_1\res\drawable-440dpi\credentials_image_m2105k81c.png  
+添加resources\package_1\res\drawable-xhdpi\credentials_image_m2105k81c.png  
+添加resources\package_1\res\drawable-xxhdpi\credentials_image_m2105k81c.png  
+添加resources\package_1\res\drawable-xxxhdpi\credentials_image_m2105k81c.png  
 修改public.xml，id我不确定，随便写的不重复新id  
 ```
 添加
-  <public id="0x7f030011" type="drawable" name="credentials_image_m2105k81ac" />
+  <public id="0x7f03000f" type="drawable" name="credentials_image_m2105k81c" />
 ```
 内置启用小米工具AI功能叠加层文件  
 product\overlay\MiuiNotesOverlay.apk  
-product\overlay\MiuiSecurityCoreOverlay.apk  
 product\overlay\MiuiSoundrecorderOverlay.apk  
 product\overlay\MiuiThememanagerOverlay.apk  
 product\overlay\TransplantOverlay_Shadow.apk  
@@ -523,6 +538,59 @@ product\priv-app\MiuiHome
 替换修改版应用包安装组件  
 product\priv-app\MIUIPackageInstallerVariants  
 并且删除两个oat文件  
+
+5G版为了开启网络和短信功能，需要从手机rom提取所需文件，这里以从k60提取举例  
+product\app\remoteSimLockAuthentication\remoteSimLockAuthentication.apk  
+product\app\XiaomiSimActivateService\XiaomiSimActivateService.apk  
+product\pangu\system\etc\permissions\privapp-permissions-systemhelper.xml  
+product\pangu\system\priv-app\SystemHelper\SystemHelper.apk  
+product\priv-app\AutoRegistration\AutoRegistration.apk  
+product\priv-app\MIUIContactsT\MIUIContactsT.apk  
+product\priv-app\MiuiMms\MiuiMms.apk  
+product\priv-app\RegService\RegService.apk  
+product\overlay\AospFrameworkTelephonyResOverlay.apk
+product\overlay\MiuiCarrierConfigOverlay.apk
+product\overlay\MiuiTelephonyResOverlay.apk
+
+删除product\priv-app\MIUIContactsPad  
+修改product\etc\permissions\privapp-permissions-product.xml，添加  
+```
+   <privapp-permissions package="com.android.mms">
+      <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+      <permission name="android.permission.READ_PHONE_STATE" />
+      <permission name="android.permission.CALL_PRIVILEGED" />
+      <permission name="android.permission.GET_ACCOUNTS_PRIVILEGED" />
+      <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+      <permission name="android.permission.SEND_SMS_NO_CONFIRMATION" />
+      <permission name="android.permission.SEND_RESPOND_VIA_MESSAGE" />
+      <permission name="android.permission.UPDATE_APP_OPS_STATS" />
+      <permission name="android.permission.MODIFY_PHONE_STATE" />
+      <permission name="android.permission.WRITE_MEDIA_STORAGE" />
+      <permission name="android.permission.MANAGE_USERS" />
+      <permission name="android.permission.WRITE_APN_SETTINGS" />
+      <permission name="android.permission.INTERACT_ACROSS_USERS" />
+      <permission name="android.permission.SCHEDULE_EXACT_ALARM" />
+   </privapp-permissions>
+   <privapp-permissions package="com.miui.dmregservice">
+      <permission name="android.permission.READ_PHONE_STATE" />
+      <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+      <permission name="android.permission.MODIFY_PHONE_STATE" />
+      <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+      <permission name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+      <permission name="android.permission.PACKAGE_USAGE_STATS" />
+      <permission name="android.permission.WRITE_APN_SETTINGS" />
+      <permission name="android.permission.READ_NETWORK_USAGE_HISTORY" />
+      <permission name="android.permission.LOCAL_MAC_ADDRESS" />
+      <permission name="android.permission.SCHEDULE_EXACT_ALARM" />
+   </privapp-permissions>
+   <privapp-permissions package="com.xiaomi.registration">
+      <permission name="android.permission.LOCAL_MAC_ADDRESS" />
+      <permission name="android.permission.READ_PHONE_STATE" />
+      <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+      <permission name="android.permission.READ_PRECISE_PHONE_STATE" />
+   </privapp-permissions>
+```
+
 ## 可选product分区修改，补全小米平板缺失的工具app
 CarWith  
 product\app\CarWith  
@@ -539,6 +607,7 @@ product\etc\permissions\privapp-permissions-product.xml
 ```
    <privapp-permissions package="com.miui.contentextension">
       <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+      <permission name="android.permission.READ_CLIPBOARD_IN_BACKGROUND" />
    </privapp-permissions>
 ```
 ## system分区不修改，直接照搬6Pro
@@ -571,10 +640,10 @@ system\system\etc\ProjectTrebleMagicWindowService\fixed_orientation_list.xml
 build.prop修改机型代号、版本指纹  
 system\system\build.prop
 ```
-ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.system.build.version.incremental=OS2.0.207.0.VKYCNXM
-ro.build.version.incremental=OS2.0.207.0.VKYCNXM
-ro.build.description=missi-user 15 AQ3A.241006.001 OS2.0.207.0.VKYCNXM release-keys
+ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKZCNXM:user/release-keys
+ro.system.build.version.incremental=OS2.0.207.0.VKZCNXM
+ro.build.version.incremental=OS2.0.207.0.VKZCNXM
+ro.build.description=missi-user 15 AQ3A.241006.001 OS2.0.207.0.VKZCNXM release-keys
 
 #玄学优化
 #加密状态-已加密
@@ -596,8 +665,8 @@ ro.kernel.checkjni=0
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=OS2.0.207.0.VKYCNXM
+ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKZCNXM:user/release-keys
+ro.system_ext.build.version.incremental=OS2.0.207.0.VKZCNXM
 
 #完美横屏附加功能主动适配
 ro.config.sothx_project_treble_support_magic_window_fix=true
@@ -618,24 +687,249 @@ ro.config.sothx_project_treble_immerse_freeform_bottom_caption_version=1
 ro.config.sothx_project_treble_support_custom_dot_black_list=true
 ro.config.sothx_project_treble_custom_dot_black_list_version=1
 ```
-zram配置文件，改末尾  
+zram配置文件，提取自7Pro OS3.0.0.16，添加平板5系列、6系列ram/zram容量1：1  
+system_ext\etc\perfinit.conf
+```
+{
+    "common": {
+        "swap_on": 1,
+        "global_swappiness": 100,
+        "page_cluster": -1,
+        "zram_size": {
+            "def":512,"2":1024,"3":1536,"4":2252,"6":4096,"8":6144,"10":6144,"12":8192,"16":14336,"18":14336,"20":15360,"24":15360,"32":16384
+        },
+        "extm_on": 1,
+        "extm_size": {
+            "def":1024, "high_device":3072, "3+64":1024, "4+64":1024, "6+64":2048, "4+128":2048, "6+128":2048
+        },
+        "extm_file": "/data/extm/extm_file",
+        "dex2oat_threads": {
+            "def": 1,
+            "4"  : 3,
+            "8"  : 6,
+            "10" : 8
+        },
+        "boot_dex2oat_threads": {
+            "def": 1,
+            "4"  : 3,
+            "8"  : 6,
+            "10" : 8
+        },
+        "bg_dex2oat_threads": {
+            "def":1,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10
+        },
+        "reclaim_on_start": {
+            "def":0
+        },
+        "swappiness_on_start": {
+            "def":100
+        },
+        "reclaim_on_launcher": {
+            "def":0,"1":120,"2":120
+        },
+        "swappiness_on_launcher": {
+            "def":100,"2":200
+        }
+    },
+    "dex2oat": [
+        {
+            "product_name": ["dandelion", "angelica", "cattail", "angelican", "willow", "ginkgo", "cannon", "cannong",
+                             "mojito", "sunny", "rainbow", "rosemary", "secret", "maltose", "biloba", "XIG02", "chopin",
+                             "camellia", "camellian", "selene", "atom", "bomb", "spes", "spesn", "lime", "citrus"],
+            "dex2oat_threads": {
+                "def": 4
+            },
+            "boot_dex2oat_threads": {
+                "def": 6
+            },
+            "bg_dex2oat_threads": {
+                "def": 4
+            }
+        },
+        {
+            "product_name": ["merlin", "merlinin", "merlinnfc", "lancelot", "shiva", "pine", "olive", "olivelite", "olivewood", "onc", "lavender", "violet", "laurus", "camellia", "camellian", "sapphire", "sapphiren"],
+            "dex2oat_threads": {
+                "def": 4
+            },
+            "boot_dex2oat_threads": {
+                "def": 6
+            },
+            "bg_dex2oat_threads": {
+                "def": 4
+            }
+        },
+        {
+            "product_name": ["bixi"],
+            "dex2oat_threads": {
+                "def": 6
+            },
+            "boot_dex2oat_threads": {
+                "def": 6
+            },
+            "bg_dex2oat_threads": {
+                "def": 4
+            }
+        }
+    ]
+}
+```
 system_ext\etc\perfinit_bdsize_zram.conf
 ```
-            "product_name": ["manet", "vermeer"],
+{
+    "auto_zram": [
+        {
+            "auto_zram_flash": [16],
+            "auto_zram_ram_2G": {
+                "def_bdsize":0.5, "0.5":1024
+            }
+        },
+        {
+            "auto_zram_flash": [32],
+            "auto_zram_ram_2G":{
+                "def_bdsize":0.5, "0.5":1024, "1.0":1024, "2.0":2048
+            },
+            "auto_zram_ram_3G":{
+                "def_bdsize":0.5, "0.5":1536, "1.0":1536, "2.0":2048
+            }
+        },
+        {
+            "auto_zram_flash": [64],
+            "auto_zram_ram_2G":{
+                "def_bdsize":1.0, "0.5":1024, "1.0":1024, "2.0":2048
+            },
+            "auto_zram_ram_3G":{
+                "def_bdsize":1.0, "1.0":2048, "2.0":2048, "3.0":3072
+            },
+            "auto_zram_ram_4G":{
+                "def_bdsize":1.0, "1.0":3072, "2.0":3072, "4.0":4096
+            },
+            "auto_zram_ram_6G":{
+                "def_bdsize":2.0, "1.0":4096, "2.0":4096, "4.0":4096
+            }
+        },
+        {
+            "auto_zram_flash": [128],
+            "auto_zram_ram_4G":{
+                "def_bdsize":2.0, "1.0":3072, "2.0":3072, "4.0":4096
+            },
+            "auto_zram_ram_6G":{
+                "def_bdsize":2.0, "2.0":4096, "4.0":4096, "6.0":6144
+            },
+            "auto_zram_ram_8G":{
+                "def_bdsize":4.0, "4.0":6144, "6.0":6144, "8.0":8192
+            },
+            "auto_zram_ram_12G":{
+                "def_bdsize":4.0, "4.0":8192, "6.0":8192, "8.0":8192, "12.0":12288
+            },
+            "auto_zram_ram_16G":{
+                "def_bdsize":6.0, "6.0":12288, "8.0":12288, "12.0":12288, "16.0":16384
+            },
+            "auto_zram_ram_24G":{
+                "def_bdsize":6.0, "6.0":16384, "8.0":16384, "12.0":16384, "16.0":16384
+            }
+        },
+        {
+            "auto_zram_flash": [256],
+            "auto_zram_ram_4G":{
+                "def_bdsize":2.0, "1.0":3072, "2.0":3072, "4.0":4096
+            },
+            "auto_zram_ram_6G":{
+                "def_bdsize":4.0, "2.0":4096, "4.0":4096, "6.0":6144
+            },
+            "auto_zram_ram_8G":{
+                "def_bdsize":4.0, "4.0":6144, "6.0":6144, "8.0":8192
+            },
+            "auto_zram_ram_12G":{
+                "def_bdsize":4.0, "4.0":8192, "6.0":8192, "8.0":8192, "12.0":12288
+            },
+            "auto_zram_ram_16G":{
+                "def_bdsize":6.0, "6.0":12288, "8.0":12288, "12.0":12288, "16.0":16384
+            },
+            "auto_zram_ram_24G":{
+                "def_bdsize":6.0, "6.0":16384, "8.0":16384, "12.0":16384, "16.0":16384
+            }
+        },
+        {
+            "auto_zram_flash": [512, 1024],
+            "auto_zram_ram_4G":{
+                "def_bdsize":2.0, "1.0":3072, "2.0":3072, "4.0":4096
+            },
+            "auto_zram_ram_6G":{
+                "def_bdsize":4.0, "2.0":4096, "4.0":4096, "6.0":6144
+            },
+            "auto_zram_ram_8G":{
+                "def_bdsize":6.0, "4.0":6144, "6.0":6144, "8.0":8192
+            },
+            "auto_zram_ram_12G":{
+                "def_bdsize":6.0, "4.0":8192, "6.0":8192, "8.0":8192, "12.0":12288
+            },
+            "auto_zram_ram_16G":{
+                "def_bdsize":6.0, "6.0":12288, "8.0":12288, "12.0":12288, "16.0":16384
+            },
+            "auto_zram_ram_24G":{
+                "def_bdsize":6.0, "6.0":16384, "8.0":16384, "12.0":16384, "16.0":16384
+            }
+        }
+    ],
+    "zram":[
+        {
+            "product_name": ["evergo", "evergreen", "opal", "selene", "spes", "fog", "wind", "rain", "spesn", "earth", "aether", "eos", "rock", "stone", "camellian", "camellia", "tapas", "tapaz", "sea", "ocean","light","sunstone"],
+            "zram_size": {
+                "def":512,"2":1024,"3":3072,"4":4096,"6":4096,"8":6144,"10":6144,"12":8192,"16":14336, "18":14336, "20":15360, "24":15360, "32":16384
+            }
+        },
+        {
+            "product_name": ["yunluo"],
+            "zram_size": {
+                "3":3072, "4":4096
+            }
+        },
+        {
+            "product_name": ["air", "atmos", "gust", "gale", "xun", "lake", "pond"],
+            "zram_size": {
+                "4":4096
+            }
+        },
+        {
+            "product_name": ["miro", "shennong", "haotian","xuanyuan", "popsicle", "pandora", "dali", "jinghu", "nezha", "myron", "annibale","klimt","bixi","ruyi"],
+            "zram_size": {
+                "12":12288, "16":16384
+            }
+        },
+        {
+            "product_name": ["rothko","houji", "dada", "pudding", "violin"],
+            "zram_size": {
+                "8":8192,
+                "12":12288,
+                "16":16384
+            }
+        },
+        {
+            "product_name": ["manet", "vermeer", "dijun"],
             "zram_size": {
                 "16":16384
-```
-改成
-```
-            "product_name": ["manet", "vermeer"],
+            }
+         },
+        {
+            "product_name": ["muyu"],
             "zram_size": {
-                "16":16384
+                "8":8192, "12":12288, "16":16384
+            }
+        },
+        {
+            "product_name": ["piano", "yupei"],
+            "zram_size": {
+                "8":8192, "12":12288
             }
         },
         {
             "product_name": ["nabu", "elish", "enuma", "dagu", "pipa", "liuqin", "yudi"],
             "zram_size": {
                 "6":6144, "8":8192, "12":12288, "16":16384
+            }
+        }
+    ]
+}
 ```
 完美横屏附加功能修改  
 system_ext\framework\miui-embedding-window.jar  
