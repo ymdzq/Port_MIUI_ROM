@@ -1,6 +1,6 @@
-# 小米平板5 PRO 移植小米平板6 Pro 11英寸 HyperOS记录
+# 小米平板5 PRO 移植小米平板7 Pro 11英寸 HyperOS记录
 资源来源于网络，仅供交流学习，不得用做任何商业用途，不提供任何技术支持，请在下载后24小时内删除  
-基于ELISH_OS1.0.2.0，移植文件来源于LIUQIN_OS2.0.207.0  
+基于ELISH_OS1.0.2.0，移植文件来源于MUYU_OS3.0.0.16  
 本文仅记录一下修改内容，具体修改行以及内容以实际文件对比结果为准  
 
 由于修改了系统文件，所以avb验证肯定是要关的。  
@@ -10,11 +10,11 @@
 ## mi_ext分区修改，在5Pro的基础上，覆盖6Pro的所有文件
 build.prop修改机型代号，这里这个代号是miui ota更新服务器用来识别推送更新用的，你都刷第三方rom了这个就不重要了，除非你能用到那个服务器推送更新  
 把这个东西改掉的好处就是可以屏蔽更新，不会收到移植的那个机型的更新，导致用户误升级变砖  
-修改版本号为UKYCNXM  
+修改版本号为WKYCNXM  
 mi_ext\etc\build.prop
 ```
 ro.product.mod_device=elish
-ro.mi.os.version.incremental=OS2.0.207.0.VKYCNXM
+ro.mi.os.version.incremental=OS3.0.0.16.WKYCNXM
 ```
 
 这里提一句，比较新的机型的剃刀计划版本也比较新，支持卸载平板/手机管家，而版本不兼容就导致了部分机型移植完桌面没有平板/手机管家的图标，这里把有相关影响的内容列出来，这个部分提到的文件需要从6Max(yudi)的rom中提取  
@@ -58,7 +58,7 @@ odm\etc\selinux\precompiled_sepolicy.system_ext_sepolicy_and_mapping.sha256
 修改tar-rootfs.sh中的验证机型
 ```
 #删除
-if [[ $device == "sheng" || $device == "pipa" || $device == "yudi" || $device == "liuqin" ]]; then
+if [[ $device == "sheng" || $device == "pipa" || $device == "yudi" || $device == "muyu" ]]; then
 #改成
 if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device == "dagu" ]]; then
 ```
@@ -68,17 +68,17 @@ if [[ $device == "nabu" || $device == "elish" || $device == "enuma" || $device =
 ro.vendor.mslg.rootfs.version=rootfs-24.11.22.tgz
 sys.mslg.available=1
 ```
-可选补全PC版CAD，需要从小米平板7sPro或者小米平板7ultra提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
+可选补全PC版CAD，需要从小米平板7Pro或者小米平板7SPro提取（感觉这里会影响selinux，不推荐添加set_dns相关代码）  
 odm\bin\clear-caddata.sh  
 odm\bin\set_dns.sh  
 odm\etc\assets\md5.txt  
 odm\etc\assets\mslgusrimg  
-odm\etc\assets\rootfs-25.04.23.tgz  
+odm\etc\assets\rootfs-25.07.03.tgz  
 odm\etc\init\mslgservice.rc  
 
 修改odm\etc\build.prop  
 ```
-ro.vendor.mslg.rootfs.version=rootfs-25.04.23.tgz
+ro.vendor.mslg.rootfs.version=rootfs-25.07.03.tgz
 ```
 ## product分区修改，整体上照搬6Pro，但要注意以下部分
 pc版wps相关文件  
@@ -90,11 +90,12 @@ product\data-app\CAJLauncher
 product\data-app\CADLauncher  
 
 product\app  
-保留5pro小爱翻译 AiAsstVision  
-（a13澎湃内置的版本号是4.6.0，可能需要使用模块解锁实时字幕功能）  
+照搬7Pro小爱翻译 AiAsstVision  
+（pipa本来的小爱翻译是离线翻译模型，需要使用模块解锁实时字幕功能，否则整个翻译app无法打开，但解锁后支持elish和enuma使用中英文离线翻译。已测试lisa、ruan、dizi、muyu使用的小爱翻译是在线翻译模型，使用模块解锁实时字幕功能可以在线翻译多国语言，不解锁实时字幕elish和enuma也可以使用其他翻译功能）  
 删除6Pro人脸识别解锁 Biometric  
 保留5Pro人脸识别解锁 MiuiBiometric3373  
 替换AnalyticsCore（来自白羊唐黎明）  
+删除问题反馈 MiBugReportOS3
 
 按需精简  
 快应用服务引擎  
@@ -105,7 +106,7 @@ product\app\MSA
 data-app可卸载的预装app，其中不少app都是可以在应用商店里重新安装的，  
 product\data-app\  
 因为平板5pro默认的super分区只有8.5G，而且重新打包必须预留更多空间，所以可以精简这里，把super精简到7.4G以下，越小越好  
-我个人是觉得没必要搞极限精简，很多常用自带功能用户到时候又要想办法装回来，挺烦人的  
+安卓16可太大了，如果只有6Gram对erofs兼容不好，需要更多空间  
 百度输入法小米版  
 product\data-app\BaiduIME  
 PC版CAJ阅读器  
@@ -135,11 +136,11 @@ product\data-app\Padapp
 米家  
 product\data-app\SmartHome  
 
-设备功能配置文件，本来正常代号要用elish稳定使用的话，删除liuqin.xml，照搬elish.xml就好了，  
-但是如果你要全局改机器代号的话，这里配置文件也要改名成liuqin.xml，  
-所以我是建议干脆把elish.xml复制两份一个叫elish.xml一个叫liuqin.xml，都放进去，这样用哪个代号也不要紧  
+设备功能配置文件，本来正常代号要用elish稳定使用的话，删除muyu.xml，照搬elish.xml就好了，  
+但是如果你要全局改机器代号的话，这里配置文件也要改名成muyu.xml，  
+所以我是建议干脆把elish.xml复制两份一个叫elish.xml一个叫muyu.xml，都放进去，这样用哪个代号也不要紧  
 product\etc\device_features\elish.xml  
-product\etc\device_features\liuqin.xml  
+product\etc\device_features\muyu.xml  
 修改预装app列表（剃刀计划）
 ```
     <!--Add for the system data-app which could uninstall by user-->
@@ -207,10 +208,18 @@ product\etc\device_features\liuqin.xml
     <bool name="support_smart_fps">true</bool>
     <!-- smart fps value-->
     <integer name="smart_fps_value">120</integer>
-    <integer-array name="fpsList">
-        <item>120</item>
-        <item>60</item>
-    </integer-array>
+
+    <!-- 支持熄屏听剧 -->
+    <!-- whether remove screen off hold on feature -->
+    <bool name="remove_screen_off_hold_on">false</bool>
+
+    <!-- 支持语音通话工具箱 -->
+    <!--whether the device supports conversation_tool_box voip record -->
+    <bool name="support_conversation_toolbox_voiprecord">true</bool>
+
+    <!-- 支持游戏HDR -->
+    <!-- whether support displayfeature gamemode HDR -->
+    <bool name="support_displayfeature_gamemode_HDR">true</bool>
 
     <!-- 一些米板6功能，未测试是否生效，可能仅显示开关 -->
     <!-- whether support expert primary -->
@@ -268,14 +277,14 @@ product\etc\device_features\liuqin.xml
     <bool name="support_usb_keyboard">false</bool>
 ```
 修改屏幕亮度配置文件  
-product\etc\displayconfig\display_id_4630947141052476290.xml  
-product\etc\displayconfig\display_id_4630947200012256898.xml  
+product\etc\displayconfig\display_id_4630946182520747907.xml  
+product\etc\displayconfig\display_id_4630946533086175619.xml  
 
 5pro屏幕的xml文件为：  
 product\etc\displayconfig\display_id_19260527152667265.xml  
 product\etc\displayconfig\display_id_4630946481717202305.xml  
 product\etc\displayconfig\display_id_4630946545580055169.xml  
-这三个文件的内容是完全一样的，所以我选择再复制两个替换display_id_4630947141052476290.xml和display_id_4630947200012256898.xml，保留这五个xml文件，屏幕亮度调节就正常了  
+这三个文件的内容是完全一样的，所以我选择再复制两个替换display_id_4630946182520747907.xml和display_id_4630946533086175619.xml，保留这五个xml文件，屏幕亮度调节就正常了  
 这里需要注意Overlay里面的AospFrameworkResOverlay.apk要换成5Pro的，否则会遇到自动亮度导致系统软重启的问题  
 product\overlay\AospFrameworkResOverlay.apk  
 需要apkeditor反编译修改，  
@@ -296,10 +305,14 @@ product\overlay\AospFrameworkResOverlay.apk
 ```
 修改bools.xml，添加  
 ```
+  <bool name="config_batterySaverTurnedOffNotificationEnabled">false</bool>
   <bool name="config_dozeAlwaysOnEnabled">false</bool>
 ```
 修改integers.xml  
 ```
+添加
+  <integer name="config_batterySaver_full_soundTriggerMode">0</integer>
+修改
   <integer name="config_screenBrightnessDim">13</integer>
   <integer name="config_screenBrightnessSettingDefault">307</integer>
   <integer name="config_screenBrightnessSettingMaximum">2047</integer>
@@ -321,7 +334,9 @@ product\overlay\AospFrameworkResOverlay.apk
   <public id="0x7f01000c" type="array" name="config_enabledCredentialProviderService" />
   <public id="0x7f01000d" type="array" name="config_primaryCredentialProviderService" />
   <public id="0x7f01000b" type="array" name="disallowed_apps_managed_profile" />
+  <public id="0x7f020008" type="bool" name="config_batterySaverTurnedOffNotificationEnabled" />
   <public id="0x7f020007" type="bool" name="config_dozeAlwaysOnEnabled" />
+  <public id="0x7f060010" type="integer" name="config_batterySaver_full_soundTriggerMode" />
   <public id="0x7f070003" type="string" name="config_defaultAttentionService" />
   <public id="0x7f070004" type="string" name="config_defaultCredentialManagerHybridService" />
 
@@ -340,12 +355,80 @@ product\overlay\AospFrameworkResOverlay.apk
 product\etc\android_dm_table_a  
 product\etc\android_dm_table_b  
 
-build.prop修改机型代号、版本指纹，设置默认屏幕密度，关闭内存扩展  
+build.prop从a15的liuqin提取，修改机型代号、版本指纹，设置默认屏幕密度，关闭内存扩展  
 product\etc\build.prop
 ```
-ro.product.product.name=elish
-ro.product.build.fingerprint=Xiaomi/elish/miproduct:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.product.build.version.incremental=OS2.0.207.0.VKYCNXM
+修改
+ro.product.product.cert=
+ro.product.product.marketname=
+ro.product.product.name=liuqin
+ro.product.build.date=Tue Jul 22 10:32:46 CST 2025
+ro.product.build.date.utc=1753151566
+ro.product.build.fingerprint=Xiaomi/liuqin/miproduct:15/AQ3A.241006.001/OS2.0.207.0.VMYCNXM:user/release-keys
+ro.product.build.id=AQ3A.241006.001
+ro.product.build.version.incremental=OS2.0.207.0.VMYCNXM
+ro.product.build.version.release=15
+ro.product.build.version.release_or_codename=15
+ro.product.build.version.sdk=35
+改成
+ro.product.product.name=miproduct_elish
+ro.product.build.date=Tue Aug 26 00:42:45 CST 2025
+ro.product.build.date.utc=1756140165
+ro.product.build.fingerprint=Xiaomi/elish/miproduct:16/BP2A.250605.031.A3/OS3.0.0.16.WKYCNXM:user/release-keys
+ro.product.build.id=BP2A.250605.031.A3
+ro.product.build.version.incremental=OS3.0.0.16.WKYCNXM
+ro.product.build.version.release=16
+ro.product.build.version.release_or_codename=16
+ro.product.build.version.sdk=36
+ro.product.build.version.sdk_full=36.0
+
+删除
+ro.product.cpu.pagesize.max=4096
+persist.vendor.bt.a2dp.samplerate=true
+persist.vendor.adapt.sampler=true
+persist.sys.stability.iorapEnable=false
+persist.sys.keyguard_state_ready=true
+vendor.audio_hal.period_size=192
+vendor.audio.tunnel.encode=false
+vendor.audio.offload.buffer.size.kb=32
+vendor.voice.path.for.pcm.voip=true
+vendor.audio.offload.multiaac.enable=true
+vendor.audio.parser.ip.buffer.size=262144
+vendor.audio.flac.sw.decoder.24bit=true
+vendor.audio.use.sw.alac.decoder=true
+vendor.audio.use.sw.ape.decoder=true
+vendor.audio.hw.aac.encoder=true
+persist.sys.offlinelog.bootlog=true
+bluetooth.device_id.vendor_id=0x001D
+persist.lm.em.flush_zram_usedrate=30
+persist.sys.smartpower.display.enable=true
+persist.sys.resource_cache_limit.multiple=3
+添加
+ro.product.page_size=4096
+ro.product.cpu.pagesize.max=16384
+ro.product.build.no_bionic_page_size_macro=true
+persist.sys.stability.dmabuf=true
+persist.sys.stability.PrereadEnable=true
+persist.sys.stability.PtePrereadEnable=true
+persist.iorapd.preRead_timeout_ms=600
+persist.iorapd.log.verbose=false
+remote_provisioning.strongbox.rkp_only=true
+aaudio.mmap_policy=2
+bluetooth.device_id.vendor_id=0x038F
+bluetooth.device_id.product_id=0x1200
+ro.appsearch.feature.enable_isolated_storage=
+ro.config.ringtone=unknown
+ro.config.notification_sound=unknown
+# Removed by post_process_props.py because overridden by ro.com.android.dataroaming=false
+#ro.com.android.dataroaming?=true
+ro.crypto.metadata_init_delete_all_keys.enabled=false
+persist.sys.spc.proc_restart_enable=true
+persist.sys.smartpower.multitask.gpu.boost.support=true
+persist.vendor.qcom.bluetooth.pbap_pse_dynamic_version_upgrade=true
+persist.vendor.service.bt.adv_transport=false
+persist.sys.skip_verify_class.enable=true
+persist.sys.enable_parallel_sweep=true
+persist.sys.smart_art.enable=true
 
 persist.miui.density_v2=360
 ro.sf.lcd_density=360
@@ -361,7 +444,8 @@ ro.millet.netlink=29
 
 #开启高级材质选项
 persist.sys.background_blur_supported=true
-persist.sys.advanced_visual_release=2
+persist.sys.background_blur_status_default=true
+persist.sys.advanced_visual_release=3
 
 #6max多了的两行玄学优化，平滑圆角
 persist.sys.support_view_smoothcorner=true
@@ -379,26 +463,59 @@ debug.game.video.support=true
 
 #HDR修复？
 persist.sys.support_ultra_hdr=true
+persist.sys.adaptive_hdr_supported=true
 persist.sys.hdr_dimmer_supported=true
 
-#加回5Pro本身的玄学优化，性能调度
+#加回5Pro、7Pro本身的玄学优化，性能调度
 persist.sys.perf.cgroup8250.stune=true
+persist.sys.mmms.file.thrashing.critical.percentage=50
+persist.sys.mmms.file.thrashing.page.thread=204800
+persist.sys.mmms.lowmem.reclaim.memavailable.thread=153600
+ro.mmms.kill.subprocess.memavailable.thread=355360
+persist.sys.miui.recent.app.protect.enable=true
+persist.sys.mmms.previous.memavailable.thread=153600
 persist.sys.miui.sf_cores=4-7
-persist.vendor.display.miui.composer_boost=4-7
 persist.sys.minfree_def=73728,92160,110592,154832,482560,579072
 persist.sys.minfree_6g=73728,92160,110592,258048,663552,903168
 persist.sys.minfree_8g=73728,92160,110592,387072,1105920,1451520
+persist.sys.precache.number=4
+persist.sys.precache.appstrs3=com.miui.home,com.android.systemui,com.miui.weather2
+persist.sys.precache.appstrs4=com.android.provision,com.android.settings
+persist.sys.precache2.number=1
+persist.sys.precache2.appstrs1=com.miui.home
+persist.sys.smartpower.limit.normal.max.refresh.rate.enable=true
+persist.sys.smartpower.limit.normal.max.refresh.rate.support=120
+persist.sys.bitmap_scale_opt_enable=true
+persist.sys.smartpower.display.enable=true
+persist.sys.smartpower.limit.max.refresh.rate=120
+
 
 #内存扩展DM映射器回写块设备优化
 persist.miui.extm.dm_opt.enable=true
 
-#作用未知
-persist.sys.launch_response_optimization.enable=true
+#app调整游戏显示布局功能
 ro.config.miui_compat_enable=true
 ro.config.miui_appcompat_enable=true
+
+#静置时维持刷新率时长
+ro.surface_flinger.use_content_detection_for_refresh_rate=true
+ro.surface_flinger.set_idle_timer_ms=2147483647
+ro.surface_flinger.set_touch_timer_ms=2147483647
+ro.surface_flinger.set_display_power_timer_ms=2147483647
+
+#可升级系统app
+persist.sys.allow_sys_app_update=true
+
+#作用未知
+persist.sys.launch_response_optimization.enable=true
+ro.config.miui_continuity_enable=true
+persist.miui.continuity_enable=true
+persist.miui.thirdappopt_enable=true
+persist.sys.support_ai_wakeup_effect=true
 ro.surface_flinger.game_default_frame_rate_override=120
 ro.miui.shell_anim_enable_fcb=true
 ro.audio.3d_play=true
+ro.audio.stereo_spatialization_enabled=true
 ```
 内置完美横屏计划  
 product\etc\autoui_list.xml  
@@ -410,11 +527,7 @@ product\etc\dot_black_list.json
 
 内置完美图标计划  
 product\media\theme\default\dynamicicons  
-product\media\theme\default\icons  
 product\media\theme\default\miui_mod_icons\  
-
-默认开启通信共享（来自Amktiao）  
-product\media\theme\default\framework-miui-res  
 
 保留5pro本身开机动画（分辨率匹配屏幕）  
 product\media\bootanimation.zip  
@@ -452,6 +565,10 @@ product\overlay\DevicesOverlay.apk
 替换resources\package_1\res\raw\wired_quick_charge_video.mp4  
 替换resources\package_1\res\raw\wired_strong.mp4  
 添加resources\package_1\res\values-sw600dp-port\dimens.xml  
+修改bools.xml，添加  
+```
+  <bool name="hover_pad_orientation_dependent">true</bool>
+```
 添加colors.xml  
 修改dimens.xml  
 ```
@@ -468,20 +585,24 @@ product\overlay\DevicesOverlay.apk
 删除
   <public id="0x7f040022" type="drawable" name="charge_animation_turbo_tail_icon" />
 添加
+  <public id="0x7f010001" type="bool" name="hover_pad_orientation_dependent" />
   <public id="0x7f020009" type="color" name="dark_mode_icon_color_single_tone" />
   <public id="0x7f020010" type="color" name="light_mode_icon_color_single_tone" />
+  <public id="0x7f02000a" type="color" name="tint_mode_icon_color_single_tone" />
   <public id="0x7f03006f" type="dimen" name="miui_keyguard_pin_view_password_entry_bg_corners" />
 ```
 MiuiFrameworkResOverlay主要影响屏幕hbm背光、hbm亮度曲线、以及一些网络制式的属性  
 product\overlay\MiuiFrameworkResOverlay.apk  
-可选修改，通信共享，跟上面那个framework-miui-res效果是一样的，二个方案选一即可  
-修改bools.xml，添加  
-```
-  <bool name="config_celluar_shared_support">true</bool>
-```
+添加strings.xml  
+添加xml文件夹  
 修改public.xml，id我不确定，随便写的不重复新id，添加  
 ```
-  <public id="0x7f02000e" type="bool" name="config_celluar_shared_support" />
+  <public id="0x7f050002" type="string" name="continuity_cloud_data_module_config" />
+  <public id="0x7f050000" type="string" name="config_defaultAttentionService" />
+  <public id="0x7f050001" type="string" name="config_individual_brightness_component" />
+  <public id="0x7f060002" type="xml" name="miuishortcuts" />
+  <public id="0x7f060000" type="xml" name="edge_suppression_config" />
+  <public id="0x7f060001" type="xml" name="miuishortcutkeymap_extra" />
 ```
 MiuiBiometricResOverlay人脸识别资源文件空包  
 product\overlay\MiuiBiometricResOverlay.apk  
@@ -492,17 +613,20 @@ product\overlay\SettingsRroDeviceTypeOverlay.apk
 添加resources\package_1\res\drawable-xhdpi\credentials_image_m2105k81ac.png  
 添加resources\package_1\res\drawable-xxhdpi\credentials_image_m2105k81ac.png  
 添加resources\package_1\res\drawable-xxxhdpi\credentials_image_m2105k81ac.png  
+修改bools.xml，添加  
+```
+  <bool name="credentials_image_m2105k81ac">true</bool>
+```
 修改public.xml，id我不确定，随便写的不重复新id  
 ```
 添加
-  <public id="0x7f030011" type="drawable" name="credentials_image_m2105k81ac" />
+  <public id="0x7f010003" type="bool" name="credentials_image_m2105k81ac" />
+  <public id="0x7f030010" type="drawable" name="credentials_image_m2105k81ac" />
 ```
 内置启用小米工具AI功能叠加层文件  
 product\overlay\MiuiNotesOverlay.apk  
-product\overlay\MiuiSecurityCoreOverlay.apk  
 product\overlay\MiuiSoundrecorderOverlay.apk  
 product\overlay\MiuiThememanagerOverlay.apk  
-product\overlay\TransplantOverlay_Shadow.apk  
 
 指南针授权？  
 product\pangu\system\etc\permissions\signature-permission-pangu.xml添加  
@@ -513,12 +637,9 @@ product\pangu\system\etc\permissions\signature-permission-pangu.xml添加
    </signature-permissions>
 ```
 删除6Pro相机，否则会提示机型不匹配无法使用然后退出，  
-目前澎湃2只能用5.3以上版本的相机，老apk无法使用，同样会提示机型不匹配无法使用然后退出，  
-目前没有可用的官方签名通用相机，Sunshine0078修改5.3专版相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
+目前澎湃3只能用6.1以上版本的相机，老apk无法使用，同样会提示机型不匹配无法使用然后退出，  
+目前没有可用的官方签名通用相机，DVDstone修改6.1专版相机，其他选择只能用谷歌相机、骁龙相机这种第三方相机  
 product\priv-app\MiuiCamera  
-并且删除两个oat文件  
-替换修改版桌面  
-product\priv-app\MiuiHome  
 并且删除两个oat文件  
 替换修改版应用包安装组件  
 product\priv-app\MIUIPackageInstallerVariants  
@@ -539,6 +660,7 @@ product\etc\permissions\privapp-permissions-product.xml
 ```
    <privapp-permissions package="com.miui.contentextension">
       <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+      <permission name="android.permission.READ_CLIPBOARD_IN_BACKGROUND" />
    </privapp-permissions>
 ```
 ## system分区不修改，直接照搬6Pro
@@ -548,11 +670,6 @@ system\system\etc\cgroups_8250_u_stune.json
 system\system\etc\cgroups_v1.json  
 system\system\etc\task_profiles_8250_u_stune.json  
 system\system\etc\task_profiles_v1.json  
-
-根据用户反馈蓝牙LHDC无需修复，直接用6Pro的不用动  
-system\system\apex\com.android.btservices.apex  
-签名破解，要修改系统app，就需要修改services.jar文件，我这里使用的SYT_ROM工具提供的插件自动修改  
-system\system\framework\services.jar  
 
 可选修改，内置完美横屏计划（防止云控修改，感觉这里会影响selinux，不推荐修改）  
 system\system\bin\project_treble_magic_window_service.sh  
@@ -571,10 +688,10 @@ system\system\etc\ProjectTrebleMagicWindowService\fixed_orientation_list.xml
 build.prop修改机型代号、版本指纹  
 system\system\build.prop
 ```
-ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.system.build.version.incremental=OS2.0.207.0.VKYCNXM
-ro.build.version.incremental=OS2.0.207.0.VKYCNXM
-ro.build.description=missi-user 15 AQ3A.241006.001 OS2.0.207.0.VKYCNXM release-keys
+ro.system.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS3.0.0.16.WKYCNXM:user/release-keys
+ro.system.build.version.incremental=OS3.0.0.16.WKYCNXM
+ro.build.version.incremental=OS3.0.0.16.WKYCNXM
+ro.build.description=missi-user 15 AQ3A.241006.001 OS3.0.0.16.WKYCNXM release-keys
 
 #玄学优化
 #加密状态-已加密
@@ -596,8 +713,8 @@ ro.kernel.checkjni=0
 build.prop修改机型代号、版本指纹  
 system_ext\etc\build.prop
 ```
-ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS2.0.207.0.VKYCNXM:user/release-keys
-ro.system_ext.build.version.incremental=OS2.0.207.0.VKYCNXM
+ro.system_ext.build.fingerprint=qti/missi/missi:15/AQ3A.241006.001/OS3.0.0.16.WKYCNXM:user/release-keys
+ro.system_ext.build.version.incremental=OS3.0.0.16.WKYCNXM
 
 #完美横屏附加功能主动适配
 ro.config.sothx_project_treble_support_magic_window_fix=true
@@ -633,7 +750,7 @@ system_ext\etc\perfinit_bdsize_zram.conf
             }
         },
         {
-            "product_name": ["nabu", "elish", "enuma", "dagu", "pipa", "liuqin", "yudi"],
+            "product_name": ["nabu", "elish", "enuma", "dagu", "pipa", "muyu", "yudi"],
             "zram_size": {
                 "6":6144, "8":8192, "12":12288, "16":16384
 ```
